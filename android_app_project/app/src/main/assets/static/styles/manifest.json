@@ -1,0 +1,18 @@
+[
+  "00-tokens.css",
+  "01-base.css",
+  "10-sidebar.css",
+  "20-tasks.css",
+  "30-layout-top-nav-panels.css",
+  "40-controls.css",
+  "50-image-input-gallery.css",
+  "60-prompt.css",
+  "70-output-settings.css",
+  "71-preview-results.css",
+  "72-queue-modals.css",
+  "73-gallery-drawer.css",
+  "74-api-system-settings.css",
+  "75-gallery-card-image-editor.css",
+  "80-utilities-responsive.css",
+  "90-history.css"
+]

@@ -1,0 +1,346 @@
+.gallery-drawer {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.gallery-drawer-body {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+
+.gallery-drawer-top {
+  display: grid;
+  gap: 12px;
+}
+
+.gallery-drawer-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.gallery-drawer-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gallery-drawer-category-tabs .quick-gallery-category {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 60px;
+  max-width: 100%;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gallery-drawer-toolbar .ghost-button {
+  min-height: 34px;
+  padding-inline: 14px;
+}
+
+.gallery-drawer-main {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.gallery-category-manage-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.gallery-category-manage-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.gallery-category-manage-copy strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.gallery-category-manage-copy span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gallery-category-create-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 34px minmax(160px, 1fr) minmax(220px, 1.5fr) auto;
+  gap: 10px 12px;
+  justify-content: stretch;
+}
+
+.gallery-category-create-row::before {
+  content: "";
+}
+
+.gallery-category-create-row #newGalleryCategoryPromptRole {
+  grid-column: auto;
+}
+
+.gallery-category-list {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
+}
+
+.gallery-category-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 34px minmax(160px, 1fr) minmax(220px, 1.5fr) auto;
+  grid-template-areas: "toolbar name role actions";
+  gap: 10px 12px;
+  align-items: center;
+  justify-content: stretch;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  transition: border-color var(--motion-fast), background var(--motion-fast), opacity var(--motion-fast), transform var(--motion-fast);
+}
+
+.gallery-category-row.is-current {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--line));
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--primary) 68%, transparent);
+}
+
+.gallery-category-row-toolbar {
+  grid-area: toolbar;
+  display: flex;
+  width: 34px;
+  align-items: center;
+  justify-content: start;
+}
+
+.gallery-category-row > [data-gallery-category-name] {
+  grid-area: name;
+}
+
+.gallery-category-row > [data-gallery-category-prompt-role] {
+  grid-area: role;
+}
+
+.gallery-category-row-actions {
+  grid-area: actions;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(52px, auto));
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.gallery-category-row .control,
+.gallery-category-create-row .control {
+  width: 100%;
+  min-width: 0;
+}
+
+.gallery-category-create-row .ghost-button,
+.gallery-category-row .ghost-button {
+  white-space: nowrap;
+}
+
+.gallery-drag-handle {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: color-mix(in srgb, var(--line) 78%, transparent);
+  color: var(--text-secondary);
+  cursor: grab;
+}
+
+.gallery-drag-handle:active {
+  cursor: grabbing;
+}
+
+.gallery-drag-handle svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.gallery-drag-preview {
+  position: fixed;
+  top: -999px;
+  left: -999px;
+  z-index: 999;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 190px;
+  max-width: 280px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--primary) 58%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 96%, var(--primary-light));
+  color: var(--text);
+  box-shadow: var(--shadow-popover);
+  pointer-events: none;
+}
+
+.gallery-drag-preview-visual {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-soft));
+  color: var(--primary-strong);
+}
+
+.gallery-drag-preview-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-drag-preview-visual svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.gallery-drag-preview-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.gallery-drag-preview-copy strong,
+.gallery-drag-preview-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-drag-preview-copy strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.gallery-drag-preview-copy span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.gallery-drag-preview-clone {
+  position: fixed !important;
+  top: -999px !important;
+  left: -999px !important;
+  z-index: 999;
+  margin: 0;
+  pointer-events: none;
+  box-shadow: var(--shadow-popover);
+}
+
+.gallery-category-row.is-dragging,
+.gallery-card.is-dragging {
+  opacity: 0.42;
+}
+
+.gallery-category-row.drop-target {
+  border-color: color-mix(in srgb, var(--primary) 44%, var(--line));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+
+.gallery-category-row.drop-before {
+  box-shadow: inset 0 3px 0 color-mix(in srgb, var(--primary) 78%, transparent);
+}
+
+.gallery-category-row.drop-after {
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--primary) 78%, transparent);
+}
+
+.gallery-drawer-toolbar .ghost-button.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary-strong);
+}
+
+.gallery-grid {
+  display: grid;
+  align-items: start;
+  overflow: hidden;
+  transition: height var(--motion-height);
+}
+
+.gallery-grid.is-transitioning {
+  will-change: height;
+}
+
+.gallery-grid > .gallery-grid-layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.gallery-grid-layer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-grid {
+    transition: none;
+  }
+}
+
+.gallery-empty {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--line));
+  border-radius: 12px;
+  color: var(--muted);
+}
+
+.archive-list {
+  display: grid;
+  gap: 10px;
+}
+
+.language-settings-panel {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.language-select-field {
+  max-width: 420px;
+}
+
+.language-settings-status {
+  margin: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+

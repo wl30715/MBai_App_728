@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>墨白 - 探索未来的 AI 基础设施</title>
+  <script src="/static/tailwind-cdn.js"></script>
+  <script>
+    (function() {
+      const isDark = localStorage.getItem('mbai_theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    })();
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --bg-color: #f3f4f6;
+      --text-color: #111827;
+      --panel-bg: rgba(255, 255, 255, 0.7);
+      --panel-border: rgba(0, 0, 0, 0.08);
+      --panel-border-top: rgba(255, 255, 255, 0.5);
+      --panel-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      --input-bg: rgba(255, 255, 255, 0.5);
+      --input-border: rgba(0, 0, 0, 0.1);
+      --input-text: #111827;
+      --input-placeholder: rgba(0, 0, 0, 0.4);
+      --input-focus-bg: #ffffff;
+      --tab-bg: rgba(0, 0, 0, 0.05);
+      --tab-active-bg: #ffffff;
+      --tab-text: #6b7280;
+      --tab-active-text: #111827;
+      --btn-secondary-bg: rgba(0, 0, 0, 0.05);
+      --btn-secondary-hover: rgba(0, 0, 0, 0.1);
+      --link-color: #6b7280;
+      --link-hover: #111827;
+      --divider-color: rgba(0, 0, 0, 0.1);
+      --fluid-r: 243; --fluid-g: 244; --fluid-b: 246;
+      --header-bg: rgba(243, 244, 246, 0.8);
+      --card-bg: rgba(255, 255, 255, 0.6);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0C0C10;
+      --text-color: #ffffff;
+      --panel-bg: rgba(12, 12, 16, 0.6);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-border-top: rgba(255, 255, 255, 0.15);
+      --panel-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      --input-bg: rgba(0, 0, 0, 0.3);
+      --input-border: rgba(255, 255, 255, 0.06);
+      --input-text: #ffffff;
+      --input-placeholder: rgba(255, 255, 255, 0.3);
+      --input-focus-bg: rgba(0, 0, 0, 0.5);
+      --tab-bg: rgba(0, 0, 0, 0.4);
+      --tab-active-bg: rgba(255, 255, 255, 0.1);
+      --tab-text: #a1a1aa;
+      --tab-active-text: #ffffff;
+      --btn-secondary-bg: rgba(255, 255, 255, 0.05);
+      --btn-secondary-hover: rgba(255, 255, 255, 0.1);
+      --link-color: #a1a1aa;
+      --link-hover: #ffffff;
+      --divider-color: rgba(255, 255, 255, 0.1);
+      --fluid-r: 12; --fluid-g: 12; --fluid-b: 16;
+      --header-bg: rgba(12, 12, 16, 0.8);
+      --card-bg: rgba(25, 25, 30, 0.6);
+    }
+
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      overflow-x: hidden;
+      perspective: 1000px;
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    /* Noise Texture */
+    .bg-noise {
+      position: fixed; inset: 0; z-index: -2;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* WebGL Fluid Canvas */
+    #fluid-canvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+      opacity: 0.45; pointer-events: none;
+    }
+
+    /* Header */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      background: var(--header-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--divider-color);
+      transition: background-color 0.5s ease, border-color 0.5s ease;
+    }
+
+    /* Panel */
+    .panel {
+      width: 100%;
+      background: var(--panel-bg);
+      backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+      border: 1px solid var(--panel-border); border-top: 1px solid var(--panel-border-top);
+      border-radius: 24px; padding: 40px 36px;
+      box-shadow: var(--panel-shadow);
+      transform-style: preserve-3d; transition: transform 0.1s ease-out, background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
+      text-align: left; position: relative;
+    }
+
+    .panel h2 {
+      margin: 0 0 28px; font-size: 24px; font-weight: 600; letter-spacing: -0.5px;
+      color: var(--text-color); text-align: center; transform: translateZ(20px);
+      transition: color 0.5s ease;
+    }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 24px; background: var(--tab-bg); padding: 5px; border-radius: 12px; transform: translateZ(10px); transition: background 0.5s ease; }
+    .tabs button {
+      flex: 1; padding: 10px; border-radius: 8px; font-weight: 500; font-size: 14px;
+      background: transparent; border: none; color: var(--tab-text); transition: all 0.3s; cursor: pointer;
+    }
+    .tabs button.active { background: var(--tab-active-bg); color: var(--tab-active-text); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .tabs button:not(.active):hover { color: var(--text-color); }
+
+    input, button { width: 100%; box-sizing: border-box; font-family: inherit; }
+    .panel input {
+      background: var(--input-bg); border: 1px solid var(--input-border);
+      border-radius: 12px; padding: 14px 16px; font-size: 15px; color: var(--input-text);
+      margin: 0 0 16px 0 !important; display: block; transition: all 0.3s; transform: translateZ(15px);
+    }
+    input::placeholder { color: var(--input-placeholder); }
+    input:focus { outline: none; border-color: #6366f1; background: var(--input-focus-bg); box-shadow: 0 0 0 1px #6366f1; }
+
+    button#submit {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s; margin-top: 12px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+      transform: translateZ(25px);
+    }
+    button#submit:hover { transform: translateZ(25px) translateY(-1px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); filter: brightness(1.1); }
+    button#submit:active { transform: translateZ(25px) translateY(1px); }
+
+    button#sendCode {
+      background: var(--btn-secondary-bg); color: var(--text-color); border: 1px solid var(--input-border);
+      border-radius: 12px; padding: 12px; font-size: 14px; cursor: pointer; transition: all 0.3s; margin-bottom: 16px;
+      transform: translateZ(15px);
+    }
+    button#sendCode:hover { background: var(--btn-secondary-hover); }
+
+    .status { min-height: 22px; margin-top: 18px; color: #ef4444; font-size: 14px; text-align: center; transform: translateZ(5px); }
+    .links { margin-top: 24px; font-size: 13px; text-align: center; transform: translateZ(5px); }
+    .links a { color: var(--link-color); text-decoration: none; transition: color 0.3s; }
+    .links a:hover { color: var(--link-hover); }
+
+
+
+    /* Bento Grid */
+    .bento-card {
+      background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--divider-color);
+      border-radius: 24px; padding: 32px; transition: all 0.3s ease;
+    }
+    .bento-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border-color: #6366f1; }
+  </style>
+</head>
+<body>
+  <div class="bg-noise"></div>
+  <canvas id="fluid-canvas"></canvas>
+
+  <!-- Header -->
+  <header>
+    <div class="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <img src="/static/logo.png" alt="Logo" class="w-8 h-8 rounded-xl object-contain bg-white shadow-sm">
+        <span class="font-bold text-lg tracking-tight">墨白</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Theme Toggle -->
+        <button id="themeToggle" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--btn-secondary-bg)] transition-colors text-[var(--link-color)] hover:text-[var(--link-hover)]">
+          <svg id="icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+          <svg id="icon-moon" class="w-5 h-5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main role="main" class="pt-24 pb-12">
+    <!-- Hero Section (Side-by-Side) -->
+    <section class="relative z-10">
+      <div class="max-w-[1200px] mx-auto px-6 py-12 lg:py-20 flex flex-col lg:flex-row items-center gap-16">
+
+        <!-- Left: Slogan & Features -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--btn-secondary-bg)] border border-[var(--divider-color)] text-indigo-500 text-sm font-medium mb-8">
+            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            墨白 核心系统 2.0 上线
+          </div>
+          <h1 class="text-4xl lg:text-6xl font-extrabold mb-6 tracking-tight flex flex-col gap-3">
+            <span>更懂你的</span>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">高性价比 AI 平台</span>
+          </h1>
+          <p class="text-lg text-[var(--link-color)] mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            操作极简，模板丰富。低至极致的价格，即可解锁无限延展的 AI 绘画与多模态能力，让创作变得前所未有的简单。
+          </p>
+          <ul class="flex flex-col gap-4 text-left max-w-sm mx-auto lg:mx-0">
+            <li class="flex items-center gap-3 font-medium text-[var(--text-color)]">
+              <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-500">✓</div>
+              极简易用，一秒上手无门槛
+            </li>
+            <li class="flex items-center gap-3 font-medium text-[var(--text-color)]">
+              <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-500">✓</div>
+              模板丰富，一键克隆同款大作
+            </li>
+            <li class="flex items-center gap-3 font-medium text-[var(--text-color)]">
+              <div class="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center text-green-500">✓</div>
+              击穿底价，告别高昂模型订阅费
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: Login Panel -->
+        <div class="flex-1 w-full max-w-[440px]">
+          <div class="panel" id="loginPanel">
+            <h2>欢迎回来</h2>
+            <div class="tabs">
+              <button id="loginTab" class="active">密码登录</button>
+              <button id="registerTab">注册账号</button>
+            </div>
+            <input id="email" autocomplete="username" placeholder="账号 / 邮箱">
+            <div id="emailCodeBox" style="display:none; transition: max-height 0.3s ease; margin-bottom: 16px;">
+              <div style="display: flex; gap: 8px;">
+                <input id="verificationCode" placeholder="邮箱验证码" style="margin-bottom:0 !important; flex: 1;">
+                <button id="sendCode" type="button" style="width: auto; white-space: nowrap; margin-bottom: 0; padding: 0 16px;">获取验证码</button>
+              </div>
+            </div>
+            <div id="usernameContainer" style="display:none; transition: max-height 0.3s ease;">
+              <input id="registerUsername" autocomplete="off" placeholder="用户名">
+            </div>
+            <input id="password" type="password" autocomplete="current-password" placeholder="密码">
+            <button id="submit">登录</button>
+            <div style="margin-top: 16px; text-align: center; font-size: 13px;">
+              <a href="javascript:void(0)" id="forget-link" style="color: var(--link-color); text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='var(--link-hover)'" onmouseout="this.style.color='var(--link-color)'">忘记密码？</a>
+            </div>
+
+
+
+            <div id="status" class="status"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Photo Waterfall -->
+    <section class="max-w-[1400px] mx-auto px-6 py-20 relative z-10">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold mb-4">海量高质量模板</h2>
+        <p class="text-[var(--link-color)]">每次刷新，为您随机呈现不同灵感</p>
+      </div>
+
+      <div class="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[var(--divider-color)] bg-[var(--header-bg)] relative z-10">
+    <div class="max-w-[1200px] mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[var(--link-color)]">
+      <div>&copy; 2026 墨白. 保留所有权利.</div>
+      <div class="flex gap-6">
+        <a href="#" class="hover:text-[var(--link-hover)]">隐私政策</a>
+        <a href="#" class="hover:text-[var(--link-hover)]">服务条款</a>
+        <a href="#" class="hover:text-[var(--link-hover)]">联系我们</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/webgl-fluid"></script>
+  <script>
+    const $id = (id) => document.getElementById(id);
+    let mode = "login";
+    let emailVerificationEnabled = false;
+    let isDark = localStorage.getItem('mbai_theme') === 'dark';
+    let fluidInstance = null;
+
+    // --- Theme Toggle Logic ---
+    const themeToggle = $id('themeToggle');
+    const html = document.documentElement;
+    const iconSun = $id('icon-sun');
+
+    const iconMoon = $id('icon-moon');
+
+
+
+
+    function updateThemeColors() {
+      const computedStyle = getComputedStyle(html);
+      const r = parseInt(computedStyle.getPropertyValue('--fluid-r').trim());
+      const g = parseInt(computedStyle.getPropertyValue('--fluid-g').trim());
+      const b = parseInt(computedStyle.getPropertyValue('--fluid-b').trim());
+      if (fluidInstance) {
+        fluidInstance.BACK_COLOR = { r, g, b };
+      }
+    }
+
+    themeToggle.onclick = () => {
+      isDark = !isDark;
+      html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      iconSun.style.display = isDark ? 'block' : 'none';
+      iconMoon.style.display = isDark ? 'none' : 'block';
+      localStorage.setItem('mbai_theme', isDark ? 'dark' : 'light');
+      setTimeout(updateThemeColors, 50); // slight delay to allow CSS var to update
+    };
+
+    // --- WebGL Fluid ---
+    window.onload = function() {
+        const canvas = document.getElementById('fluid-canvas');
+        if (typeof WebGLFluid !== 'undefined') {
+            fluidInstance = WebGLFluid(canvas, {
+                IMMEDIATE: true, TRIGGER: 'hover',
+                SIM_RESOLUTION: 128, DYE_RESOLUTION: 512, CAPTURE_RESOLUTION: 512,
+                DENSITY_DISSIPATION: 1.5, VELOCITY_DISSIPATION: 0.2,
+                PRESSURE: 0.8, PRESSURE_ITERATIONS: 32, CURL: 30,
+                SPLAT_RADIUS: 0.25, SPLAT_FORCE: 6000,
+                SHADING: true, COLORFUL: true, COLOR_UPDATE_SPEED: 10,
+                BACK_COLOR: { r: 243, g: 244, b: 246 },
+                TRANSPARENT: true, BLOOM: true, BLOOM_ITERATIONS: 8,
+                BLOOM_RESOLUTION: 256, BLOOM_INTENSITY: 0.8, BLOOM_THRESHOLD: 0.6, BLOOM_SOFT_KNEE: 0.7,
+                SUNRAYS: true, SUNRAYS_RESOLUTION: 196, SUNRAYS_WEIGHT: 1.0,
+            });
+            // Forward mouse events
+            ['mousemove', 'mousedown', 'mouseup'].forEach(evt => {
+                document.addEventListener(evt, e => canvas.dispatchEvent(new MouseEvent(evt, e)));
+            });
+        }
+    };
+
+    // --- Smooth Mouse Tracking for Panel 3D Tilt ---
+    const panel = $id("loginPanel");
+    document.addEventListener("mousemove", (e) => {
+      const xAxis = (window.innerWidth / 2 - e.clientX) / 40;
+      const yAxis = (window.innerHeight / 2 - e.clientY) / 40;
+      panel.style.transform = `rotateY(${xAxis}deg) rotateX(${-yAxis}deg)`;
+    });
+    document.addEventListener("mouseleave", () => {
+      panel.style.transform = "rotateY(0deg) rotateX(0deg)";
+      panel.style.transition = "transform 0.5s ease-out";
+    });
+    panel.addEventListener("mouseenter", () => {
+      panel.style.transition = "transform 0.1s ease-out";
+    });
+
+    // --- Enter to Submit ---
+    ['username', 'password', 'verificationCode'].forEach(id => {
+      const el = $id(id);
+      if (el) {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            $id('submit').click();
+          }
+        });
+      }
+    });
+
+    // --- Authentication Logic ---
+    function switchMode(newMode) {
+      mode = newMode;
+      $id('status').innerText = '';
+      $id('loginTab').className = mode === 'login' ? 'active' : '';
+      $id('registerTab').className = mode === 'register' ? 'active' : '';
+      $id('submit').innerText = mode === 'login' ? '登录' : (mode === 'register' ? '注册账号' : '重置密码');
+      if ($id('forget-link')) {
+        $id('forget-link').style.display = mode === 'login' ? 'inline-block' : 'none';
+      }
+
+      if (mode === 'register' || mode === 'reset') {
+        $id('email').placeholder = mode === 'register' ? "请输入注册邮箱" : "请输入要找回的邮箱";
+        $id('usernameContainer').style.display = mode === 'register' ? 'block' : 'none';
+        $id('emailCodeBox').style.display = 'block';
+        $id('password').placeholder = mode === 'reset' ? "设置新密码" : "密码";
+      } else {
+        $id('email').placeholder = "账号 / 邮箱";
+        $id('usernameContainer').style.display = 'none';
+        $id('emailCodeBox').style.display = 'none';
+        $id('password').placeholder = "密码";
+      }
+    }
+    $id("loginTab").onclick = () => switchMode("login");
+    $id("registerTab").onclick = () => switchMode("register");
+    if ($id("forget-link")) $id("forget-link").onclick = () => switchMode("reset");
+
+    $id("submit").onclick = async () => {
+      $id("status").textContent = "";
+
+      if (mode === 'reset') {
+        const payload = {
+            email: $id("email").value,
+            verification_code: $id("verificationCode").value,
+            new_password: $id("password").value
+        };
+        const response = await fetch("/api/account/reset-password", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) { $id("status").textContent = data.detail || "操作失败"; return; }
+        $id("status").textContent = "密码重置成功，请重新登录";
+        setTimeout(() => {
+          $id("password").value = "";
+          switchMode("login");
+        }, 1500);
+        return;
+      }
+
+      const payload = {
+          password: $id("password").value,
+          email: $id("email").value,
+          verification_code: $id("verificationCode").value
+      };
+      if (mode === "register") {
+          payload.username = $id("registerUsername").value;
+      } else {
+          payload.username = $id("email").value;
+      }
+
+      const response = await fetch(mode === "login" ? "/api/account/login" : "/api/account/register", {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { $id("status").textContent = data.detail || "操作失败"; return; }
+      location.href = data.user && data.user.is_admin ? "/admin" : "/";
+    };
+    $id('sendCode').onclick = async () => {
+      const email = $id('email').value.trim();
+      if (!email) return $id('status').innerText = '请先输入邮箱';
+
+      const btn = $id('sendCode');
+      btn.innerText = '发送中...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("/api/account/request-email-code", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({email, intent: mode === 'register' ? 'register' : 'reset'})
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            $id('status').innerText = "验证码已发送";
+            let timer = 60;
+            const interval = setInterval(() => {
+                timer--;
+                if(timer <= 0) {
+                    clearInterval(interval);
+                    btn.innerText = '获取验证码';
+                    btn.disabled = false;
+                } else {
+                    btn.innerText = `${timer}s 后重发`;
+                }
+            }, 1000);
+        } else {
+            $id('status').innerText = (data.detail || "发送失败");
+            btn.innerText = '获取验证码';
+            btn.disabled = false;
+        }
+      } catch {
+        $id('status').innerText = "网络异常";
+        btn.innerText = '获取验证码';
+        btn.disabled = false;
+      }
+    };
+    fetch("/api/account/me").then(r=>r.json()).then(d=>{ emailVerificationEnabled = !!d.settings?.email_verification_enabled; }).catch(()=>{});
+  </script>
+</body>
+</html>

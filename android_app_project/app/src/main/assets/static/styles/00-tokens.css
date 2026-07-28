@@ -1,0 +1,92 @@
+:root {
+  color-scheme: light;
+  --bg: #f3f6f4;
+  --surface: #ffffff;
+  --surface-soft: #f8faf9;
+  --line: #e2e8e5;
+  --text: #1f352f;
+  --text-secondary: #4a635b;
+  --muted: #889d95;
+  --primary: #457b66;
+  --primary-foreground: #ffffff;
+  --primary-strong: #335d4d;
+  --primary-light: #e6f0ec;
+  --accent: #9b7f4f;
+  --danger: #a6463d;
+  --status-blue: #2f6fe4;
+  --code: #142f2d;
+  --code-text: #bfe0cf;
+  --success-soft: #eef6f2;
+  --danger-soft: #fff4f2;
+  --panel-border: color-mix(in srgb, var(--line) 78%, transparent);
+  --section-heading: var(--text);
+  --task-title: var(--text);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --motion-fast: 140ms ease;
+  --motion-base: 180ms ease;
+  --motion-height: 220ms ease;
+  --font: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --shadow-sm: 0 2px 8px rgba(29, 52, 46, 0.04);
+  --shadow-popover: 0 14px 34px rgba(29, 52, 46, 0.16);
+  --shadow-modal: 0 24px 80px rgba(24, 45, 39, 0.24);
+  --overlay: rgba(12, 28, 23, 0.46);
+  --overlay-subtle: rgba(12, 28, 23, 0.28);
+  --workspace-texture:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--primary) 10%, transparent) 1px, transparent 1.6px),
+    linear-gradient(135deg, color-mix(in srgb, var(--primary-light) 34%, transparent), transparent 48%);
+  --sidebar-width: 347px;
+  --sidebar-min-width: 280px;
+  --sidebar-max-width: 520px;
+  --workspace-side-action-width: 164px;
+  --header-height: 60px;
+  --scrollbar-track: rgba(230, 240, 236, 0.55);
+  --scrollbar-thumb: rgba(69, 123, 102, 0.36);
+  --scrollbar-thumb-hover: rgba(51, 93, 77, 0.58);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101815;
+  --surface: #17221e;
+  --surface-soft: #1e2b26;
+  --line: #31433b;
+  --text: #e7f0ec;
+  --text-secondary: #b9cac2;
+  --muted: #82978e;
+  --primary: #72b79b;
+  --primary-foreground: #10201b;
+  --primary-strong: #a6d8c5;
+  --primary-light: #243d34;
+  --accent: #d3b776;
+  --danger: #e18479;
+  --status-blue: #83a9ff;
+  --code: #0b1110;
+  --code-text: #c9e8d9;
+  --success-soft: #1b342b;
+  --danger-soft: #3a201d;
+  --panel-border: color-mix(in srgb, var(--line) 58%, transparent);
+  --section-heading: color-mix(in srgb, var(--text) 58%, var(--text-secondary));
+  --task-title: color-mix(in srgb, var(--text) 36%, var(--text-secondary));
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-popover: 0 18px 42px rgba(0, 0, 0, 0.38);
+  --shadow-modal: 0 28px 84px rgba(0, 0, 0, 0.48);
+  --overlay: rgba(5, 12, 10, 0.62);
+  --overlay-subtle: rgba(5, 12, 10, 0.44);
+  --workspace-texture:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--primary-strong) 7%, transparent) 1px, transparent 1.6px),
+    linear-gradient(135deg, color-mix(in srgb, var(--primary-light) 32%, transparent), transparent 52%);
+  --scrollbar-track: rgba(49, 67, 59, 0.55);
+  --scrollbar-thumb: rgba(114, 183, 155, 0.42);
+  --scrollbar-thumb-hover: rgba(166, 216, 197, 0.64);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+:root.theme-transition-lock *,
+:root.theme-transition-lock *::before,
+:root.theme-transition-lock *::after {
+  transition: none !important;
+}

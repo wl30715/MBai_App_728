@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#457B66" />
+  <title>用户中心 - mBai GPT</title>
+  <link rel="icon" type="image/png" href="/static/brand/favicon-v3.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <script src="/static/pwa.js?v=pwa-2" defer></script>
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-584" />
+  <style>
+    body.is-normal-user details[data-history-filter-section="mode"],
+    body.is-normal-user details[data-history-filter-section="prompt_mode"],
+    body.is-normal-user details[data-history-filter-section="quality"],
+    body.is-normal-user details[data-history-filter-section="ratio"],
+    body.is-normal-user details[data-history-filter-section="orientation"],
+    body.is-normal-user details[data-history-filter-section="backend"],
+    body.is-normal-user details[data-history-filter-section="provider"] {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <main class="history-page">
+    <aside class="history-sidebar">
+      <a id="historyBackLink" class="history-back-link" href="/" data-i18n="history.back">返回生成页</a>
+      <div class="history-brand">
+        <strong data-i18n="history.title">用户中心</strong>
+        <span id="historyTotal" data-i18n="history.loading">载入中</span>
+      </div>
+      <label class="history-search-label" for="historySearch" data-i18n="history.search">搜索</label>
+      <div class="history-search-row">
+        <input id="historySearch" class="control" type="search" autocomplete="off" placeholder="搜索提示词" data-i18n-attr="placeholder:history.searchPlaceholder" />
+        <button id="historySearchClear" class="ghost-button text-sm" type="button" data-i18n="history.clear">清空</button>
+      </div>
+      <details class="history-filter-block" data-history-filter-section="mode" open>
+        <summary class="history-filter-summary"><h2 data-i18n="history.type">类型</h2></summary>
+        <div id="historyModeList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block" data-history-filter-section="month" open>
+        <summary class="history-filter-summary"><h2 data-i18n="history.month">月份</h2></summary>
+        <div id="historyMonthList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block" data-history-filter-section="prompt_mode" open>
+        <summary class="history-filter-summary"><h2 data-i18n="history.promptMode">提示词模式</h2></summary>
+        <div id="historyPromptModeList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block" data-history-filter-section="quality" open>
+        <summary class="history-filter-summary"><h2 data-i18n="history.quality">质量</h2></summary>
+        <div id="historyQualityList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block" data-history-filter-section="ratio" open>
+        <summary class="history-filter-summary"><h2 data-i18n="history.ratio">比例</h2></summary>
+        <div id="historyRatioList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block" data-history-filter-section="orientation" open>
+        <summary class="history-filter-summary">
+          <h2 class="history-filter-heading history-filter-heading-orientation">
+            <svg class="history-filter-heading-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <rect x="5" y="3.5" width="10" height="13" rx="2.5"></rect>
+              <path d="M7.5 6.5h5M7.5 10h5M7.5 13.5h5"></path>
+            </svg>
+            <span data-i18n="history.orientation">方向</span>
+          </h2>
+        </summary>
+        <div id="historyOrientationList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block history-filter-block-secondary" data-history-filter-section="backend">
+        <summary class="history-filter-summary"><h2 data-i18n="history.backend">后端</h2></summary>
+        <div id="historyBackendList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block history-filter-block-secondary" data-history-filter-section="provider">
+        <summary class="history-filter-summary"><h2 data-i18n="history.provider">供应商</h2></summary>
+        <div id="historyProviderList" class="history-filter-list"></div>
+      </details>
+      <details class="history-filter-block" data-history-filter-section="archived" open>
+        <summary class="history-filter-summary"><h2 data-i18n="history.archived">归档</h2></summary>
+        <div id="historyArchiveList" class="history-filter-list">
+          <button class="history-filter-button active" type="button" data-history-archived="" data-i18n="history.all">全部</button>
+          <button class="history-filter-button" type="button" data-history-archived="false" data-i18n="history.unarchived">未归档</button>
+          <button class="history-filter-button" type="button" data-history-archived="true" data-i18n="history.archivedOnly">已归档</button>
+        </div>
+      </details>
+    </aside>
+    <div class="history-resize-hit-area history-resize-hit-area-left" role="separator" tabindex="0" aria-orientation="vertical" aria-valuemin="220" aria-valuemax="420" aria-valuenow="280" aria-label="调整筛选栏宽度" data-history-resizer="left" data-i18n-attr="aria-label:history.resizeFilters"></div>
+    <section class="history-results" aria-label="历史任务" data-i18n-attr="aria-label:history.tasksAria">
+      <header class="history-toolbar">
+        <div>
+          <h1 data-i18n="history.title">用户中心</h1>
+          <p id="historyResultSummary" data-i18n="history.browseNewest">按时间倒序浏览</p>
+        </div>
+        <div class="history-toolbar-actions">
+          <div id="historyViewToggle" class="history-view-toggle" aria-label="视图" data-i18n-attr="aria-label:history.view">
+            <button class="history-view-button active" type="button" data-history-view="grid" aria-pressed="true" data-i18n="history.grid">网格</button>
+            <button class="history-view-button" type="button" data-history-view="list" aria-pressed="false" data-i18n="history.list">列表</button>
+          </div>
+          <div id="historySortToggle" class="history-sort-toggle" aria-label="排序" data-i18n-attr="aria-label:history.sort">
+            <button class="history-sort-button active" type="button" data-history-sort="newest" aria-pressed="true" data-i18n="history.newest">最新优先</button>
+            <button class="history-sort-button" type="button" data-history-sort="oldest" aria-pressed="false" data-i18n="history.oldest">最早优先</button>
+          </div>
+          <button id="historyRefreshButton" class="ghost-button text-sm" type="button" data-i18n="history.refresh">刷新</button>
+        </div>
+      </header>
+      <section class="user-center-panel" aria-label="用户中心概览">
+        <div class="user-center-dropdown">
+          <label class="user-center-dropdown-summary" for="userCenterModuleSelect">
+            <span>
+              <strong>账户与充值设置</strong>
+              <small>选择要查看的账户模块</small>
+            </span>
+            <select id="userCenterModuleSelect" class="user-center-module-select" aria-label="选择用户中心模块">
+              <option value="account">账户概览</option>
+              <option value="redeem">兑换码充值</option>
+              <option value="settings">账号设置</option>
+            </select>
+          </label>
+        </div>
+        <div class="user-center-dropdown-body">
+            <div class="user-center-module-panel" data-user-center-module="account">
+            <div class="user-account-card">
+              <div class="user-account-header">
+                <div class="user-avatar" aria-hidden="true" id="userCenterAvatar">U</div>
+                <div class="user-account-copy">
+                  <div class="user-account-title-row">
+                    <strong id="userCenterUsername">-</strong>
+                    <span id="userCenterRole" class="user-role-badge">普通用户</span>
+                    <button id="userCenterCheckinButton" class="user-checkin-btn" type="button">📅 每日签到</button>
+                  </div>
+                  <div class="user-account-meta">
+                    <span id="userCenterHandle">@ -</span>
+                    <span aria-hidden="true">·</span>
+                    <span id="userCenterEmail">未绑定邮箱</span>
+                    <span aria-hidden="true">·</span>
+                    <span>默认账户</span>
+                  </div>
+                </div>
+              </div>
+              <div class="user-stat-grid">
+                <div class="user-stat-item">
+                  <span>可用积分</span>
+                  <strong id="userCenterTotalCredits">0</strong>
+                  <small>充值或后台发放</small>
+                </div>
+                <div class="user-stat-item">
+                  <span>赠送积分</span>
+                  <strong id="userCenterFreeCredits">0</strong>
+                  <small>注册/活动赠送</small>
+                </div>
+                <div class="user-stat-item">
+                  <span>正式点数</span>
+                  <strong id="userCenterCredits">0</strong>
+                  <small>可用于扣费生成</small>
+                </div>
+                <div class="user-stat-item">
+                  <span>总消耗</span>
+                  <strong id="userCenterSpentCredits">0</strong>
+                  <small>累计扣点记录</small>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div class="user-settings-card user-center-module-panel" data-user-center-module="redeem" hidden>
+              <div class="user-section-heading">
+                <span class="user-section-icon user-section-icon-account" aria-hidden="true"></span>
+                <div>
+                  <strong>兑换码充值</strong>
+                  <small>输入购买后收到的兑换码，成功后点数自动到账</small>
+                </div>
+              </div>
+              <form id="userRedeemForm" class="user-password-card user-redeem-card">
+                <div class="user-password-actions user-redeem-purchase-actions">
+                  <a id="userPurchaseRedemptionLink" class="ghost-button text-sm user-purchase-redemption-button" href="#" target="_blank" rel="noopener" hidden>购买兑换码</a>
+                </div>
+                <div class="user-password-actions user-redeem-actions">
+                  <button class="ghost-button text-sm" type="submit">立即兑换</button>
+                  <button id="userRedemptionRecordButton" class="ghost-button text-sm" type="button">获赠与充值记录</button>
+                  <button id="userDeductionRecordButton" class="ghost-button text-sm" type="button">扣点记录</button>
+                </div>
+                <div class="user-password-fields">
+                  <input id="userRedeemCode" class="control" type="text" autocomplete="off" placeholder="请输入兑换码" />
+                  <span id="userRedeemStatus" class="user-password-status" role="status"></span>
+                </div>
+              </form>
+              <div id="userRedemptionRecordPanel" class="user-redemption-record-panel" hidden>
+                <div class="user-redemption-record-title">兑换记录</div>
+                <div id="userRedemptionRecordList" class="user-redemption-record-list">暂无兑换记录</div>
+              </div>
+            </div>
+            <div class="user-settings-card user-center-module-panel" data-user-center-module="settings" hidden>
+              <div class="user-section-heading">
+                <span class="user-section-icon user-section-icon-settings" aria-hidden="true"></span>
+                <div>
+                  <strong>设置</strong>
+                  <small>管理你的账号资料和安全设置</small>
+                </div>
+              </div>
+              <div class="user-account-binding">
+                <span class="user-binding-icon user-section-icon-account" aria-hidden="true"></span>
+                <div>
+                  <strong>账号</strong>
+                  <small id="userCenterBoundAccount">-</small>
+                </div>
+                <span class="user-binding-status">已绑定</span>
+              </div>
+              <div class="user-section-heading user-security-heading">
+                <span class="user-section-icon user-section-icon-security" aria-hidden="true"></span>
+                <div>
+                  <strong>安全</strong>
+                  <small>管理你的登录密码</small>
+                </div>
+              </div>
+              <form id="userPasswordForm" class="user-password-card">
+                <div class="user-password-title">
+                  <span class="user-password-icon user-section-icon-password" aria-hidden="true"></span>
+                  <div>
+                    <strong>修改密码</strong>
+                    <small>更新你的密码以确保账户安全</small>
+                  </div>
+                </div>
+                <div class="user-password-fields">
+                  <input id="userCurrentPassword" class="control" type="password" autocomplete="current-password" placeholder="当前密码" />
+                  <input id="userNewPassword" class="control" type="password" autocomplete="new-password" placeholder="新密码，至少 6 位" />
+                </div>
+                <div class="user-password-actions">
+                  <button class="ghost-button text-sm" type="submit">保存密码</button>
+                  <span id="userPasswordStatus" class="user-password-status" role="status"></span>
+                </div>
+              </form>
+              <div class="user-logout-card">
+                <div class="user-logout-copy">
+                  <strong>退出账号</strong>
+                  <small>退出当前登录状态，返回登录页面</small>
+                </div>
+                <button id="userLogoutButton" class="ghost-button text-sm user-logout-button" type="button">退出登录</button>
+                <span id="userLogoutStatus" class="user-password-status" role="status"></span>
+              </div>
+            </div>
+          </div>
+      </section>
+      <div class="user-center-section-heading">
+        <h2 class="user-center-section-title">历史记录</h2>
+        <span class="history-retention-reminder">生成历史和图片仅保留 72 小时，请及时下载保存。</span>
+      </div>
+      <div id="historyBulkToolbar" class="history-bulk-toolbar hidden" hidden>
+        <span id="historyBulkCount">已选择 0 个任务</span>
+        <div class="history-bulk-actions">
+          <button id="historyBulkArchiveButton" class="ghost-button text-sm" type="button" data-i18n="action.archive">归档</button>
+          <button id="historyBulkRestoreButton" class="ghost-button text-sm" type="button" data-i18n="archive.restore">恢复</button>
+          <button id="historyBulkDeleteButton" class="ghost-button text-sm danger-button" type="button" data-i18n="action.delete">删除</button>
+          <button id="historyBulkDeleteCancelButton" class="ghost-button text-sm hidden" type="button" data-i18n="action.cancel">取消</button>
+        </div>
+      </div>
+      <div id="historyTaskList" class="history-task-list history-view-grid" role="listbox" aria-live="polite"></div>
+      <div id="historyLoadSentinel" class="history-load-sentinel" data-history-load-more role="status" aria-live="polite" hidden></div>
+    </section>
+    <div class="history-resize-hit-area history-resize-hit-area-right" role="separator" tabindex="0" aria-orientation="vertical" aria-valuemin="300" aria-valuemax="620" aria-valuenow="380" aria-label="调整详情栏宽度" data-history-resizer="right" data-i18n-attr="aria-label:history.resizeDetail"></div>
+    <aside id="historyDetail" class="history-detail" aria-live="polite">
+      <div class="history-detail-header">
+        <div>
+          <h2 class="history-detail-title history-detail-empty-title" data-i18n="history.detail">任务详情</h2>
+        </div>
+        <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="关闭任务详情" data-i18n-attr="aria-label:history.closeDetail">×</button>
+      </div>
+      <div class="history-detail-empty" data-i18n="history.detailEmpty">选择一个历史任务查看详情</div>
+    </aside>
+  </main>
+  <script>
+    (() => {
+      const originalFetch = window.fetch.bind(window);
+      let kicked = false;
+      window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        if (response.status === 401 && !kicked) {
+          kicked = true;
+          window.alert("账号已在其他设备登录，请重新登录");
+          window.location.href = "/login?kicked=1";
+        }
+        return response;
+      };
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = String(value ?? "");
+      };
+      const escapeHtml = (value) => String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+      const formatRedemptionTime = (value) => {
+        if (!value) return "-";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? String(value).slice(0, 16).replace("T", " ") : date.toLocaleString();
+      };
+      const loadRedemptionRecords = async () => {
+        const panel = document.getElementById("userRedemptionRecordPanel");
+        const list = document.getElementById("userRedemptionRecordList");
+        const titleEl = panel?.querySelector(".user-redemption-record-title");
+        if (panel) panel.hidden = false;
+        if (titleEl) titleEl.textContent = "获赠与充值记录";
+        if (list) list.textContent = "正在加载...";
+        try {
+          const response = await fetch("/api/account/redemptions", { cache: "no-store" });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.detail || "兑换记录加载失败");
+          const records = Array.isArray(payload.redemptions) ? payload.redemptions : [];
+          if (!list) return;
+          if (!records.length) {
+            list.textContent = "暂无积分获取记录";
+            return;
+          }
+          list.innerHTML = records.map((record) => {
+            const bucketLabel = record.bucket === "credits" ? "正式点数" : "赠送积分";
+            const tagHtml = record.code ? `<code>${escapeHtml(record.code)}</code>` : `<small style="color:var(--text-muted);font-size:12px">${escapeHtml(bucketLabel)}</small>`;
+            return `
+              <div class="user-redemption-record-row">
+                <span>${escapeHtml(record.batch_name || "积分赠送/充值")}</span>
+                <strong>+${escapeHtml(record.credits || 0)} 点</strong>
+                ${tagHtml}
+                <time>${escapeHtml(formatRedemptionTime(record.redeemed_at))}</time>
+              </div>
+            `;
+          }).join("");
+        } catch (error) {
+          if (list) list.textContent = error instanceof Error ? error.message : "获取记录加载失败";
+        }
+      };
+      const loadDeductionRecords = async () => {
+        const panel = document.getElementById("userRedemptionRecordPanel");
+        const list = document.getElementById("userRedemptionRecordList");
+        const titleEl = panel?.querySelector(".user-redemption-record-title");
+        if (panel) panel.hidden = false;
+        if (titleEl) titleEl.textContent = "扣点记录";
+        if (list) list.textContent = "正在加载...";
+        try {
+          const response = await fetch("/api/account/deductions", { cache: "no-store" });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.detail || "扣点记录加载失败");
+          const records = Array.isArray(payload.deductions) ? payload.deductions : [];
+          if (!list) return;
+          if (!records.length) {
+            list.textContent = "暂无扣点记录";
+            return;
+          }
+          list.innerHTML = records.map((record) => {
+            const bucketLabel = record.bucket === "credits" ? "正式点数" : "赠送积分";
+            const taskLabel = record.task_id ? `任务 #${escapeHtml(String(record.task_id).slice(-6))}` : escapeHtml(bucketLabel);
+            return `
+              <div class="user-redemption-record-row">
+                <span>${escapeHtml(record.batch_name || "生图扣点")}</span>
+                <strong style="color: var(--danger-color, #ef4444);">-${escapeHtml(record.credits || 0)} 点</strong>
+                <small style="color:var(--text-muted);font-size:12px">${taskLabel}</small>
+                <time>${escapeHtml(formatRedemptionTime(record.redeemed_at))}</time>
+              </div>
+            `;
+          }).join("");
+        } catch (error) {
+          if (list) list.textContent = error instanceof Error ? error.message : "扣点记录加载失败";
+        }
+      };
+      const loadAccount = async () => {
+        try {
+          const response = await fetch("/api/account/me", { cache: "no-store" });
+          const payload = await response.json();
+          const user = payload.user;
+          const purchaseLink = document.getElementById("userPurchaseRedemptionLink");
+          const purchaseUrl = payload.settings?.redemption_purchase_url || "";
+          if (purchaseLink) {
+            purchaseLink.hidden = !purchaseUrl;
+            purchaseLink.href = purchaseUrl || "#";
+          }
+          if (!user) return;
+          if (!user.is_admin) document.body.classList.add("is-normal-user");
+          setText("userCenterUsername", user.username || "-");
+          setText("userCenterRole", user.is_admin ? "管理员" : "普通用户");
+          setText("userCenterHandle", user.username ? `@ ${user.username}` : "@ -");
+          setText("userCenterEmail", String(user.email || "").trim() || "未绑定邮箱");
+          setText("userCenterBoundAccount", user.username || "-");
+          setText("userCenterTotalCredits", user.total_available ?? 0);
+          setText("userCenterCredits", user.credits ?? 0);
+          setText("userCenterFreeCredits", Number(user.free_credits || 0) + Number(user.congestion_free_credits || 0));
+          setText("userCenterSpentCredits", user.spent_credits ?? 0);
+          setText("userCenterAvatar", String(user.username || "U").trim().slice(0, 1).toUpperCase() || "U");
+          void loadCheckinStatus();
+        } catch (_) {}
+      };
+      const loadCheckinStatus = async () => {
+        const btn = document.getElementById("userCenterCheckinButton");
+        if (!btn) return;
+        try {
+          const res = await fetch("/api/user/checkin", { cache: "no-store" });
+          if (!res.ok) { btn.style.display = "none"; return; }
+          const data = await res.json();
+          if (!data.enabled) { btn.style.display = "none"; return; }
+          btn.style.display = "inline-flex";
+          if (data.checked_in) {
+            btn.disabled = true;
+            btn.classList.add("checked-in");
+            btn.textContent = `✓ 今日已签到 (已连签${data.streak_count}天)`;
+          } else {
+            btn.disabled = false;
+            btn.classList.remove("checked-in");
+            btn.textContent = data.streak_count > 0 ? `📅 签到 (连续${data.streak_count}天)` : "📅 每日签到";
+          }
+        } catch (_) {
+          if (btn) btn.style.display = "none";
+        }
+      };
+      const checkinBtn = document.getElementById("userCenterCheckinButton");
+      checkinBtn?.addEventListener("click", async () => {
+        checkinBtn.disabled = true;
+        try {
+          const res = await fetch("/api/user/checkin", { method: "POST" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.detail || "签到失败");
+          alert(`🎉 签到成功！增加 ${data.earned_credits} 积分（已连续签到 ${data.streak_count} 天）`);
+          await loadAccount();
+        } catch (err) {
+          alert(err instanceof Error ? err.message : "签到失败");
+          await loadCheckinStatus();
+        }
+      });
+      const applyUserCenterModule = (value) => {
+        const active = value || "account";
+        document.querySelectorAll("[data-user-center-module]").forEach((panel) => {
+          panel.hidden = panel.getAttribute("data-user-center-module") !== active;
+        });
+      };
+      const moduleSelect = document.getElementById("userCenterModuleSelect");
+      moduleSelect?.addEventListener("change", () => {
+        applyUserCenterModule(moduleSelect.value);
+      });
+      applyUserCenterModule(moduleSelect?.value || "account");
+      document.getElementById("historyBackLink")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.location.assign("/");
+      });
+      const form = document.getElementById("userPasswordForm");
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const status = document.getElementById("userPasswordStatus");
+        if (status) status.textContent = "";
+        const currentPassword = document.getElementById("userCurrentPassword")?.value || "";
+        const newPassword = document.getElementById("userNewPassword")?.value || "";
+        try {
+          const response = await fetch("/api/account/password", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.detail || "修改失败");
+          document.getElementById("userCurrentPassword").value = "";
+          document.getElementById("userNewPassword").value = "";
+          if (status) status.textContent = "已保存";
+        } catch (error) {
+          if (status) status.textContent = error instanceof Error ? error.message : "修改失败";
+        }
+      });
+      const redeemForm = document.getElementById("userRedeemForm");
+      redeemForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const status = document.getElementById("userRedeemStatus");
+        const input = document.getElementById("userRedeemCode");
+        const code = input?.value || "";
+        if (status) status.textContent = "";
+        try {
+          const response = await fetch("/api/account/redeem-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.detail || "兑换失败");
+          if (input) input.value = "";
+          if (status) status.textContent = `兑换成功，到账 ${payload.redeemed?.credits || 0} 点`;
+          await loadAccount();
+          if (!document.getElementById("userRedemptionRecordPanel")?.hidden) await loadRedemptionRecords();
+        } catch (error) {
+          if (status) status.textContent = error instanceof Error ? error.message : "兑换失败";
+        }
+      });
+      document.getElementById("userRedemptionRecordButton")?.addEventListener("click", () => {
+        void loadRedemptionRecords();
+      });
+      document.getElementById("userDeductionRecordButton")?.addEventListener("click", () => {
+        void loadDeductionRecords();
+      });
+      const logoutButton = document.getElementById("userLogoutButton");
+      logoutButton?.addEventListener("click", async () => {
+        const status = document.getElementById("userLogoutStatus");
+        logoutButton.disabled = true;
+        if (status) status.textContent = "正在退出...";
+        try {
+          const response = await fetch("/api/account/logout", { method: "POST" });
+          if (!response.ok) throw new Error("退出失败");
+          window.location.href = "/login";
+        } catch (error) {
+          logoutButton.disabled = false;
+          if (status) status.textContent = error instanceof Error ? error.message : "退出失败";
+        }
+      });
+      loadAccount();
+    })();
+  </script>
+  <script src="/static/history.js?v=history-73"></script>
+</body>
+</html>

@@ -1,0 +1,533 @@
+/* Buttons */
+.primary-button {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  height: 44px;
+  width: 100%;
+  border-radius: var(--radius);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background var(--motion-base);
+}
+
+.primary-button:hover {
+  background: var(--primary-strong);
+  color: var(--primary-foreground);
+}
+
+.brand-new-button {
+  min-width: 84px;
+  width: auto;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 11px;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 720;
+  gap: 7px;
+  box-shadow: 0 7px 16px rgba(51, 93, 77, 0.16);
+}
+
+.brand-new-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.run-button {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background var(--motion-base);
+}
+
+.run-button:hover {
+  background: var(--primary-strong);
+  color: var(--primary-foreground);
+}
+
+.run-button.running {
+  background: var(--primary-strong);
+  color: var(--primary-foreground);
+}
+
+.run-button.running::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 90deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0.28) 90deg,
+    rgba(255, 255, 255, 0.76) 250deg,
+    #fff 330deg,
+    rgba(255, 255, 255, 0) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: soft-spin 1s linear infinite;
+}
+
+.ghost-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--line);
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background var(--motion-base),
+    border-color var(--motion-base),
+    color var(--motion-base),
+    box-shadow var(--motion-base);
+}
+
+.ghost-button:hover {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-text-button {
+  gap: 6px;
+}
+
+.resource-manage-button {
+  width: 100%;
+  min-width: 0;
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.resource-manage-button:hover,
+.resource-manage-button:focus-visible {
+  border-color: var(--primary-strong);
+  background: var(--primary-strong);
+  color: var(--primary-foreground);
+}
+
+.button-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-icon svg,
+svg.button-icon {
+  stroke: currentColor;
+}
+
+.quiet-danger-button {
+  color: var(--text-secondary);
+  border-color: var(--line);
+}
+
+.quiet-danger-button:hover,
+.quiet-danger-button:focus-visible {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--line));
+  background: color-mix(in srgb, var(--danger-soft) 62%, var(--surface));
+}
+
+.drawer-close-button {
+  flex: 0 0 44px;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drawer-close-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.text-sm {
+  font-size: 12px;
+  height: 28px;
+  padding: 0 10px;
+}
+
+/* Controls */
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.control {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--motion-base);
+}
+
+.control:focus {
+  border-color: var(--primary);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+.model-combobox {
+  position: relative;
+}
+
+.model-combobox-input {
+  padding-right: 38px;
+}
+
+.model-combobox-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.model-combobox-toggle:hover,
+.model-combobox-toggle:focus-visible {
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.model-combobox-caret {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.8px solid currentColor;
+  border-bottom: 1.8px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.model-combobox-options {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+}
+
+.model-combobox-option {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  width: 100%;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.model-combobox-option:hover,
+.model-combobox-option.active {
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.model-combobox-option.selected {
+  font-weight: 600;
+}
+
+.model-combobox-empty {
+  padding: 8px 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Segmented Control */
+.segmented {
+  display: flex;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px;
+  margin-bottom: 16px;
+}
+
+.segment {
+  flex: 1;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background var(--motion-base),
+    color var(--motion-base),
+    box-shadow var(--motion-base);
+}
+
+.segment.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Radio Group */
+.radio-group {
+  --segmented-control-padding: 3px;
+  --segmented-control-height: 30px;
+  --segmented-indicator-radius: 5px;
+  display: flex;
+  align-items: stretch;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: var(--segmented-control-padding);
+}
+
+.ratio-group {
+  --segmented-control-padding: 2px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 30px);
+  gap: 2px;
+}
+
+.ratio-group .radio-btn[data-val="1:1"] {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  height: 100%;
+}
+
+.ratio-group .radio-btn[data-val="4:5"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.ratio-group .radio-btn[data-val="5:4"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.ratio-group .radio-btn[data-val="3:4"] {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.ratio-group .radio-btn[data-val="4:3"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.ratio-group .radio-btn[data-val="2:3"] {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.ratio-group .radio-btn[data-val="3:2"] {
+  grid-column: 4;
+  grid-row: 2;
+}
+
+.ratio-group .radio-btn[data-val="9:16"] {
+  grid-column: 5;
+  grid-row: 1;
+}
+
+.ratio-group .radio-btn[data-val="16:9"] {
+  grid-column: 5;
+  grid-row: 2;
+}
+
+.ratio-group .radio-btn[data-val="9:21"] {
+  grid-column: 6;
+  grid-row: 1;
+}
+
+.ratio-group .radio-btn[data-val="21:9"] {
+  grid-column: 6;
+  grid-row: 2;
+}
+
+.radio-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: var(--segmented-control-height);
+  padding: 0 12px;
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--segmented-indicator-radius);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-base),
+    color var(--motion-base),
+    box-shadow var(--motion-base),
+    transform var(--motion-base);
+}
+
+.ratio-group .radio-btn {
+  height: 100%;
+  padding: 0 6px;
+  transform: scale(0.985);
+}
+
+.radio-btn.active {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.ratio-group .radio-btn.active {
+  transform: scale(1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.segmented-indicator-host {
+  --segmented-indicator-x: 0px;
+  --segmented-indicator-y: 0px;
+  --segmented-indicator-width: 0px;
+  --segmented-indicator-height: 0px;
+  --segmented-indicator-opacity: 0;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.segmented-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--segmented-indicator-width);
+  height: var(--segmented-indicator-height);
+  border-radius: var(--segmented-indicator-radius);
+  background: var(--primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  opacity: var(--segmented-indicator-opacity);
+  pointer-events: none;
+  transform: translate3d(var(--segmented-indicator-x), var(--segmented-indicator-y), 0);
+  transition:
+    transform var(--motion-base),
+    width var(--motion-base),
+    height var(--motion-base),
+    opacity var(--motion-fast);
+  z-index: 0;
+}
+
+.auth-source-group .segmented-indicator {
+  border-radius: 999px;
+  box-shadow: 0 5px 14px rgba(40, 116, 85, 0.22);
+}
+
+.segmented-indicator-host .radio-btn,
+.segmented-indicator-host .auth-source-button,
+.segmented-indicator-host .system-settings-tab,
+.segmented-indicator-host .history-view-button,
+.segmented-indicator-host .history-sort-button {
+  position: relative;
+  z-index: 1;
+}
+
+.radio-group.segmented-indicator-host .radio-btn.active {
+  background: transparent;
+  color: var(--primary-foreground);
+}
+
+.auth-source-group.segmented-indicator-host .auth-source-button.active {
+  background: transparent;
+  color: var(--primary-foreground);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-button,
+  .run-button,
+  .ghost-button,
+  .control,
+  .segment,
+  .slider.round,
+  .slider.round:before,
+  .radio-btn,
+  .ratio-group .radio-btn,
+  .segmented-indicator {
+    transition: none;
+  }
+
+  .ratio-group .radio-btn {
+    transform: none;
+  }
+}
