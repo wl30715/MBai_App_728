@@ -4,8 +4,8 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
-val productVersion = "2.0.4"
-val productVersionCode = 204
+val productVersion = "2.0.5"
+val productVersionCode = 205
 
 android {
     namespace = "com.example.mbaiimageai"

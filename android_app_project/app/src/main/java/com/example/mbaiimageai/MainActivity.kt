@@ -364,6 +364,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val cachedWebAssetVersion = prefs.getInt(WEB_ASSET_VERSION_KEY, -1)
+            if (cachedWebAssetVersion != BuildConfig.VERSION_CODE) {
+                clearCache(true)
+                clearHistory()
+                prefs.edit().putInt(WEB_ASSET_VERSION_KEY, BuildConfig.VERSION_CODE).apply()
+            }
             val cookies = cookieManager.getCookie("https://mbai.wang")
             val hasSession = hasSessionCookie(cookies)
             if (hasSession) {
@@ -419,6 +425,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val APP_HOST = "mbai.wang"
         private const val SESSION_COOKIE = "ilab_session"
+        private const val WEB_ASSET_VERSION_KEY = "web_asset_version"
         private val EXTERNAL_SCHEMES = setOf("https", "mailto", "tel")
         private val BUNDLED_STATIC_FILES = setOf(
             "/static/app.js",

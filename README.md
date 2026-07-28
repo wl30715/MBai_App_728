@@ -16,7 +16,7 @@ Android 工程位于 `android_app_project`，GitHub 会自动使用 JDK 17 和 A
 
 `android_app_project/app/build/outputs/apk/debug/app-debug.apk`
 
-APP 版本：`2.0.4 (204)`。
+APP 版本：`2.0.5 (205)`。
 
 请不要上传 `.gradle`、`build`、`local.properties`、签名文件或旧 APK；这些内容已经通过
 `.gitignore` 排除。

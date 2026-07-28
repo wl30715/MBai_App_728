@@ -359,10 +359,26 @@
           if (list) list.textContent = error instanceof Error ? error.message : "扣点记录加载失败";
         }
       };
+      let redirectingToLogin = false;
+      const redirectToLogin = async () => {
+        if (redirectingToLogin) return;
+        redirectingToLogin = true;
+        try {
+          await fetch("/api/account/logout", { method: "POST" });
+        } catch (_) {
+          // The login page can still replace an expired HttpOnly session cookie.
+        }
+        window.location.replace("/login?expired=1");
+      };
       const loadAccount = async () => {
         try {
           const response = await fetch("/api/account/me", { cache: "no-store" });
-          const payload = await response.json();
+          const payload = await response.json().catch(() => ({}));
+          if (response.status === 401 || !payload.user) {
+            await redirectToLogin();
+            return;
+          }
+          if (!response.ok) throw new Error(payload.detail || "用户资料加载失败");
           const user = payload.user;
           const purchaseLink = document.getElementById("userPurchaseRedemptionLink");
           const purchaseUrl = payload.settings?.redemption_purchase_url || "";
@@ -370,7 +386,6 @@
             purchaseLink.hidden = !purchaseUrl;
             purchaseLink.href = purchaseUrl || "#";
           }
-          if (!user) return;
           if (!user.is_admin) document.body.classList.add("is-normal-user");
           setText("userCenterUsername", user.username || "-");
           setText("userCenterRole", user.is_admin ? "管理员" : "普通用户");
@@ -383,7 +398,11 @@
           setText("userCenterSpentCredits", user.spent_credits ?? 0);
           setText("userCenterAvatar", String(user.username || "U").trim().slice(0, 1).toUpperCase() || "U");
           void loadCheckinStatus();
-        } catch (_) {}
+        } catch (error) {
+          setText("userCenterUsername", "资料加载失败");
+          setText("userCenterRole", "连接异常");
+          setText("userCenterHandle", error instanceof Error ? error.message : "请稍后刷新重试");
+        }
       };
       const loadCheckinStatus = async () => {
         const btn = document.getElementById("userCenterCheckinButton");
