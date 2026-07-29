@@ -543,11 +543,12 @@
             }, 3000);
         }
 
-        const SERVICE_UNAVAILABLE_MESSAGE = '服务端不可用';
+        const SERVER_UNREACHABLE_MESSAGE = '暂时无法连接服务器';
+        const SERVER_RESPONSE_ERROR_MESSAGE = '服务响应异常';
 
-        function unavailableError() {
-            const error = new Error(SERVICE_UNAVAILABLE_MESSAGE);
-            error.serviceUnavailable = true;
+        function classifiedError(message, category) {
+            const error = new Error(message);
+            error.category = category;
             return error;
         }
 
@@ -561,23 +562,21 @@
                         body: JSON.stringify(payload)
                     });
                 } catch (_) {
-                    throw unavailableError();
+                    throw classifiedError(SERVER_UNREACHABLE_MESSAGE, 'network');
                 }
                 let data;
                 try {
                     const responseText = await response.text();
                     data = responseText ? JSON.parse(responseText) : {};
                 } catch (_) {
-                    throw unavailableError();
+                    throw classifiedError(SERVER_RESPONSE_ERROR_MESSAGE, 'response');
                 }
                 if (!response.ok) {
                     throw new Error(data.detail || '请求失败');
                 }
                 return data;
             } catch (err) {
-                const message = err && err.serviceUnavailable
-                    ? SERVICE_UNAVAILABLE_MESSAGE
-                    : (err && err.message ? err.message : '请求失败');
+                const message = err && err.message ? err.message : '请求失败';
                 showToast(message, 'error');
                 throw new Error(message);
             }

@@ -1429,8 +1429,8 @@
           const response = await originalFetch(...args);
           if (response.status === 401 && !kicked) {
             kicked = true;
-            window.alert("账号已在其他设备登录，请重新登录");
-            window.location.href = "/login?kicked=1";
+            window.alert("登录已过期，请重新登录");
+            window.location.href = "/login?expired=1";
           }
           return response;
         };

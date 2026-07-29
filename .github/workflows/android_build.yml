@@ -34,14 +34,35 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x android_app_project/gradlew
 
-      - name: Test and build production debug APK
+      - name: Decode fixed release keystore
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          MBAI_KEYSTORE_BASE64: ${{ secrets.MBAI_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$MBAI_KEYSTORE_BASE64"
+          printf '%s' "$MBAI_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mbai-release.jks"
+
+      - name: Test and build signed production release APK
+        if: github.event_name != 'pull_request'
+        working-directory: ./android_app_project
+        env:
+          MBAI_KEYSTORE_PATH: ${{ runner.temp }}/mbai-release.jks
+          MBAI_KEYSTORE_PASSWORD: ${{ secrets.MBAI_KEYSTORE_PASSWORD }}
+          MBAI_KEY_ALIAS: ${{ secrets.MBAI_KEY_ALIAS }}
+          MBAI_KEY_PASSWORD: ${{ secrets.MBAI_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon --stacktrace testProductionDebugUnitTest assembleProductionRelease
+
+      - name: Test pull request without signing secrets
+        if: github.event_name == 'pull_request'
         working-directory: ./android_app_project
         run: ./gradlew --no-daemon --stacktrace testProductionDebugUnitTest assembleProductionDebug
 
-      - name: Upload debug APK
+      - name: Upload signed production release APK
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v6
         with:
-          name: MBai-debug-apk
-          path: android_app_project/app/build/outputs/apk/production/debug/app-production-debug.apk
+          name: MBai-production-release-apk
+          path: android_app_project/app/build/outputs/apk/production/release/app-production-release.apk
           if-no-files-found: error
           retention-days: 30

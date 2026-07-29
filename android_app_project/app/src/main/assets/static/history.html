@@ -229,6 +229,14 @@
               </form>
               <div class="user-logout-card">
                 <div class="user-logout-copy">
+                  <strong>APP更新</strong>
+                  <small>检查并安装墨白AI的最新正式版本</small>
+                </div>
+                <button id="userCheckUpdateButton" class="ghost-button text-sm" type="button">检查更新</button>
+                <span id="userCheckUpdateStatus" class="user-password-status" role="status"></span>
+              </div>
+              <div class="user-logout-card">
+                <div class="user-logout-copy">
                   <strong>退出账号</strong>
                   <small>退出当前登录状态，返回登录页面</small>
                 </div>
@@ -273,8 +281,8 @@
         const response = await originalFetch(...args);
         if (response.status === 401 && !kicked) {
           kicked = true;
-          window.alert("账号已在其他设备登录，请重新登录");
-          window.location.href = "/login?kicked=1";
+          window.alert("登录已过期，请重新登录");
+          window.location.href = "/login?expired=1";
         }
         return response;
       };
@@ -507,6 +515,16 @@
         void loadDeductionRecords();
       });
       const logoutButton = document.getElementById("userLogoutButton");
+      document.getElementById("userCheckUpdateButton")?.addEventListener("click", () => {
+        const status = document.getElementById("userCheckUpdateStatus");
+        if (window.MoBaiAndroid?.checkForUpdates) {
+          if (status) status.textContent = "正在检查更新…";
+          window.MoBaiAndroid.checkForUpdates();
+          window.setTimeout(() => { if (status) status.textContent = ""; }, 3000);
+          return;
+        }
+        if (status) status.textContent = "请在安卓APP内使用检查更新";
+      });
       logoutButton?.addEventListener("click", async () => {
         const status = document.getElementById("userLogoutStatus");
         logoutButton.disabled = true;
