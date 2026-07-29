@@ -284,6 +284,29 @@ class MainActivity : ComponentActivity() {
         fun checkForUpdates() {
             mainHandler.post { checkForAppUpdate(manual = true) }
         }
+
+        @JavascriptInterface
+        fun downloadImage(url: String, filename: String) {
+            mainHandler.post {
+                if (!isSafeDownloadUrl(url)) {
+                    showToast("下载地址不安全")
+                    return@post
+                }
+                val safeFilename = suggestDownloadFileName(
+                    "",
+                    """attachment; filename="$filename"""",
+                    "image/png",
+                )
+                requestDownload(
+                    DownloadSpec(
+                        url = url,
+                        userAgent = webView.settings.userAgentString.orEmpty(),
+                        contentDisposition = """attachment; filename="$safeFilename"""",
+                        mimeType = "image/*",
+                    )
+                )
+            }
+        }
     }
 
     private fun checkForAppUpdate(manual: Boolean) {
