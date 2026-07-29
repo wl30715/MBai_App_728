@@ -405,7 +405,7 @@ class MainActivity : ComponentActivity() {
             val destination = File(updateDirectory, "MBai-${update.versionCode}.apk")
             destination.delete()
             val request = DownloadManager.Request(Uri.parse(update.downloadUrl))
-                .setTitle("墨白AI ${update.versionName}")
+                .setTitle("墨白 ${update.versionName}")
                 .setDescription("正在下载APP更新")
                 .setMimeType("application/vnd.android.package-archive")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
@@ -611,7 +611,7 @@ class MainActivity : ComponentActivity() {
                     Uri.parse("package:$packageName"),
                 )
             )
-            showToast("请允许墨白AI安装未知应用，然后返回继续安装")
+            showToast("请允许墨白安装未知应用，然后返回继续安装")
             return
         }
         val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)

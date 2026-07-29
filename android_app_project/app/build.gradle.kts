@@ -4,8 +4,8 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
-val productVersion = "2.1.0"
-val productVersionCode = 210
+val productVersion = "2.1.1"
+val productVersionCode = 211
 val releaseKeystorePath = System.getenv("MBAI_KEYSTORE_PATH")
 val releaseKeystorePassword = System.getenv("MBAI_KEYSTORE_PASSWORD")
 val releaseKeyAlias = System.getenv("MBAI_KEY_ALIAS")
@@ -36,13 +36,13 @@ android {
             versionNameSuffix = "-local"
             buildConfigField("String", "APP_ORIGIN", "\"http://127.0.0.1:8787\"")
             manifestPlaceholders["usesCleartextTraffic"] = "true"
-            resValue("string", "app_name", "墨白AI 测试版")
+            resValue("string", "app_name", "墨白 测试版")
         }
         create("production") {
             dimension = "server"
             buildConfigField("String", "APP_ORIGIN", "\"https://mbai.wang\"")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
-            resValue("string", "app_name", "墨白AI")
+            resValue("string", "app_name", "墨白")
         }
     }
 
