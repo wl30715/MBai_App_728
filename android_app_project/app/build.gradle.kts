@@ -18,6 +18,24 @@ android {
         versionName = productVersion
     }
 
+    flavorDimensions += "server"
+    productFlavors {
+        create("local") {
+            dimension = "server"
+            applicationIdSuffix = ".local"
+            versionNameSuffix = "-local"
+            buildConfigField("String", "APP_ORIGIN", "\"http://127.0.0.1:8787\"")
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
+            resValue("string", "app_name", "墨白AI 测试版")
+        }
+        create("production") {
+            dimension = "server"
+            buildConfigField("String", "APP_ORIGIN", "\"https://mbai.wang\"")
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
+            resValue("string", "app_name", "墨白AI")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -32,6 +50,7 @@ android {
       compose = true
       aidl = false
       buildConfig = true
+      resValues = true
       shaders = false
     }
 

@@ -14,7 +14,7 @@
 Android 工程位于 `android_app_project`，GitHub 会自动使用 JDK 17 和 Android SDK 36
 执行测试并生成：
 
-`android_app_project/app/build/outputs/apk/debug/app-debug.apk`
+`android_app_project/app/build/outputs/apk/production/debug/app-production-debug.apk`
 
 APP 版本：`2.0.5 (205)`。
 

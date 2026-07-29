@@ -1,15 +1,19 @@
 package com.example.mbaiimageai
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
@@ -20,9 +24,11 @@ import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -37,6 +43,8 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -45,7 +53,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private lateinit var prefs: SharedPreferences
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var splashCountdownRunnable: Runnable? = null
     private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
+    private var pendingDownload: DownloadSpec? = null
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -57,6 +68,17 @@ class MainActivity : ComponentActivity() {
             null
         }
         callback.onReceiveValue(selected)
+    }
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val download = pendingDownload
+        pendingDownload = null
+        if (granted && download != null) {
+            enqueueDownload(download)
+        } else if (!granted) {
+            showMessage("需要存储权限才能将文件保存到下载目录")
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -86,8 +108,10 @@ class MainActivity : ComponentActivity() {
         // 2. Setup Splash Screen if needed
         val splashEnabled = prefs.getBoolean("splash_enabled", false)
         val splashImageUrl = prefs.getString("splash_image_url", "") ?: ""
-        val splashDuration = prefs.getInt("splash_duration", 3)
-        val splashMaxDailyViews = prefs.getInt("splash_max_daily_views", 3)
+        val splashDuration = clampSplashDuration(prefs.getInt("splash_duration", DEFAULT_SPLASH_DURATION))
+        val splashMaxDailyViews = clampSplashDailyViews(
+            prefs.getInt("splash_max_daily_views", DEFAULT_SPLASH_MAX_DAILY_VIEWS)
+        )
 
         // Reset daily views if date changed
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -97,9 +121,6 @@ class MainActivity : ComponentActivity() {
             prefs.edit().putInt("splash_daily_views", 0).putString("splash_last_date", today).apply()
         }
         val dailyViews = prefs.getInt("splash_daily_views", 0)
-
-        var splashView: View? = null
-        var skipButton: TextView? = null
 
         if (splashEnabled && splashImageUrl.isNotEmpty() && dailyViews < splashMaxDailyViews) {
             // Increment daily views
@@ -117,7 +138,6 @@ class MainActivity : ComponentActivity() {
                 load(splashImageUrl)
             }
             rootLayout.addView(imageView)
-            splashView = imageView
 
             // Create Skip Button
             val skipText = TextView(this).apply {
@@ -135,29 +155,31 @@ class MainActivity : ComponentActivity() {
                 setBackgroundColor(Color.parseColor("#80000000")) // Semi-transparent black
 
                 setOnClickListener {
+                    splashCountdownRunnable?.let(mainHandler::removeCallbacks)
+                    splashCountdownRunnable = null
                     rootLayout.removeView(imageView)
                     rootLayout.removeView(this)
                 }
             }
             rootLayout.addView(skipText)
-            skipButton = skipText
 
             // Countdown logic
             var timeLeft = splashDuration
-            val handler = Handler(Looper.getMainLooper())
             val runnable = object : Runnable {
                 override fun run() {
                     timeLeft--
                     if (timeLeft > 0) {
                         skipText.text = "跳过 ${timeLeft}s"
-                        handler.postDelayed(this, 1000)
+                        mainHandler.postDelayed(this, 1000)
                     } else {
                         rootLayout.removeView(imageView)
                         rootLayout.removeView(skipText)
+                        splashCountdownRunnable = null
                     }
                 }
             }
-            handler.postDelayed(runnable, 1000)
+            splashCountdownRunnable = runnable
+            mainHandler.postDelayed(runnable, 1000)
         }
 
         setContentView(rootLayout)
@@ -179,7 +201,7 @@ class MainActivity : ComponentActivity() {
     private fun fetchAndCacheSplashAd() {
         scope.launch {
             try {
-                val url = URL("https://mbai.wang/api/public/splash-ad")
+                val url = URL("$APP_ORIGIN/api/public/splash-ad")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connectTimeout = 5000
@@ -192,9 +214,16 @@ class MainActivity : ComponentActivity() {
 
                     val json = JSONObject(responseStr)
                     val enabled = json.optBoolean("enabled", false)
-                    val imageUrl = json.optString("image_url", "")
-                    val duration = json.optInt("duration", 3)
-                    val maxDailyViews = json.optInt("max_daily_views", 3)
+                    val imageUrl = resolveAppUrlForOrigin(
+                        json.optString("image_url", ""),
+                        APP_ORIGIN,
+                    )
+                    val duration = clampSplashDuration(
+                        json.optInt("duration", DEFAULT_SPLASH_DURATION)
+                    )
+                    val maxDailyViews = clampSplashDailyViews(
+                        json.optInt("max_daily_views", DEFAULT_SPLASH_MAX_DAILY_VIEWS)
+                    )
 
                     // Save to SharedPreferences
                     prefs.edit()
@@ -225,7 +254,8 @@ class MainActivity : ComponentActivity() {
         cookieManager.setAcceptCookie(true)
 
         val assetLoader = WebViewAssetLoader.Builder()
-            .setDomain("mbai.wang")
+            .setDomain(APP_HOST)
+            .setHttpAllowed(APP_SCHEME == "http")
             .addPathHandler("/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
 
@@ -276,7 +306,7 @@ class MainActivity : ComponentActivity() {
                     request: WebResourceRequest?
                 ): WebResourceResponse? {
                     val url = request?.url
-                    if (url != null) {
+                    if (url != null && isInternalWebUrl(url.toString())) {
                         val path = url.path ?: ""
                         if (path == "/" || path == "/index.html" || path.isEmpty()) {
                             try { return WebResourceResponse("text/html", "UTF-8", assets.open("static/index.html")) } catch (e: Exception) {}
@@ -364,18 +394,33 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+                if (!isInternalWebUrl(url)) {
+                    openExternalUrl(url)
+                    return@setDownloadListener
+                }
+                requestDownload(
+                    DownloadSpec(
+                        url = url,
+                        userAgent = userAgent.orEmpty(),
+                        contentDisposition = contentDisposition.orEmpty(),
+                        mimeType = mimeType.orEmpty(),
+                    )
+                )
+            }
+
             val cachedWebAssetVersion = prefs.getInt(WEB_ASSET_VERSION_KEY, -1)
             if (cachedWebAssetVersion != BuildConfig.VERSION_CODE) {
                 clearCache(true)
                 clearHistory()
                 prefs.edit().putInt(WEB_ASSET_VERSION_KEY, BuildConfig.VERSION_CODE).apply()
             }
-            val cookies = cookieManager.getCookie("https://mbai.wang")
+            val cookies = cookieManager.getCookie(APP_ORIGIN)
             val hasSession = hasSessionCookie(cookies)
             if (hasSession) {
-                loadUrl("https://mbai.wang/")
+                loadUrl("$APP_ORIGIN/")
             } else {
-                loadUrl("https://mbai.wang/app_login.html")
+                loadUrl("$APP_ORIGIN/app_login.html")
             }
         }
     }
@@ -400,6 +445,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        splashCountdownRunnable?.let(mainHandler::removeCallbacks)
+        splashCountdownRunnable = null
+        pendingDownload = null
         fileChooserCallback?.onReceiveValue(null)
         fileChooserCallback = null
         if (::webView.isInitialized) {
@@ -410,6 +458,66 @@ class MainActivity : ComponentActivity() {
         }
         scope.cancel()
         super.onDestroy()
+    }
+
+    private fun requestDownload(download: DownloadSpec) {
+        if (
+            Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingDownload = download
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            return
+        }
+        enqueueDownload(download)
+    }
+
+    private fun enqueueDownload(download: DownloadSpec) {
+        try {
+            val filename = suggestDownloadFileName(
+                download.url,
+                download.contentDisposition,
+                download.mimeType,
+            )
+            val request = DownloadManager.Request(Uri.parse(download.url))
+                .setTitle(filename)
+                .setDescription("正在下载")
+                .setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                )
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+            if (download.mimeType.isNotBlank()) {
+                request.setMimeType(download.mimeType)
+            }
+            if (download.userAgent.isNotBlank()) {
+                request.addRequestHeader("User-Agent", download.userAgent)
+            }
+            CookieManager.getInstance().getCookie(download.url)
+                ?.takeIf(String::isNotBlank)
+                ?.let { request.addRequestHeader("Cookie", it) }
+            val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            manager.enqueue(request)
+            showToast("已开始下载：$filename")
+        } catch (_: Exception) {
+            showToast("下载启动失败，请稍后重试")
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showMessage(message: String) {
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setMessage(message)
+            .setPositiveButton("确定", null)
+            .show()
     }
 
     private fun openExternalUrl(url: String): Boolean {
@@ -423,7 +531,16 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val APP_HOST = "mbai.wang"
+        private const val DEFAULT_SPLASH_DURATION = 3
+        private const val DEFAULT_SPLASH_MAX_DAILY_VIEWS = 3
+        private const val MIN_SPLASH_DURATION = 1
+        private const val MAX_SPLASH_DURATION = 15
+        private const val MIN_SPLASH_DAILY_VIEWS = 0
+        private const val MAX_SPLASH_DAILY_VIEWS = 20
+        private val APP_ORIGIN = BuildConfig.APP_ORIGIN.trimEnd('/')
+        private val APP_URI = URI(APP_ORIGIN)
+        private val APP_SCHEME = APP_URI.scheme
+        private val APP_HOST = APP_URI.host
         private const val SESSION_COOKIE = "ilab_session"
         private const val WEB_ASSET_VERSION_KEY = "web_asset_version"
         private val EXTERNAL_SCHEMES = setOf("https", "mailto", "tel")
@@ -444,18 +561,86 @@ class MainActivity : ComponentActivity() {
                 path.startsWith("/static/gallery/thumbs/") ||
                 path.startsWith("/static/gallery/images/category-covers/")
 
-        internal fun isInternalWebUrl(url: String): Boolean = try {
+        internal fun isInternalWebUrl(url: String): Boolean =
+            isInternalWebUrlForOrigin(url, APP_ORIGIN)
+
+        internal fun isInternalWebUrlForOrigin(url: String, origin: String): Boolean = try {
             val uri = URI(url)
-            uri.scheme.equals("https", ignoreCase = true) &&
-                uri.host.equals(APP_HOST, ignoreCase = true)
+            val originUri = URI(origin)
+            uri.scheme.equals(originUri.scheme, ignoreCase = true) &&
+                uri.host.equals(originUri.host, ignoreCase = true) &&
+                normalizedPort(uri) == normalizedPort(originUri)
         } catch (_: Exception) {
             false
+        }
+
+        private fun normalizedPort(uri: URI): Int =
+            if (uri.port >= 0) uri.port else if (uri.scheme.equals("https", true)) 443 else 80
+
+        internal fun resolveAppUrlForOrigin(value: String, origin: String): String {
+            val trimmed = value.trim()
+            return if (trimmed.startsWith("/")) {
+                "${origin.trimEnd('/')}$trimmed"
+            } else {
+                trimmed
+            }
         }
 
         internal fun isAllowedExternalUrl(url: String): Boolean = try {
             URI(url).scheme?.lowercase(Locale.ROOT) in EXTERNAL_SCHEMES
         } catch (_: Exception) {
             false
+        }
+
+        internal fun clampSplashDuration(value: Int): Int =
+            value.coerceIn(MIN_SPLASH_DURATION, MAX_SPLASH_DURATION)
+
+        internal fun clampSplashDailyViews(value: Int): Int =
+            value.coerceIn(MIN_SPLASH_DAILY_VIEWS, MAX_SPLASH_DAILY_VIEWS)
+
+        internal fun suggestDownloadFileName(
+            url: String,
+            contentDisposition: String?,
+            mimeType: String?,
+        ): String {
+            val encodedName = Regex(
+                """filename\*\s*=\s*UTF-8''([^;]+)""",
+                RegexOption.IGNORE_CASE,
+            ).find(contentDisposition.orEmpty())?.groupValues?.getOrNull(1)
+            val plainName = Regex(
+                """filename\s*=\s*(?:"([^"]+)"|([^;]+))""",
+                RegexOption.IGNORE_CASE,
+            ).find(contentDisposition.orEmpty())?.let {
+                it.groupValues.getOrNull(1)?.takeIf(String::isNotBlank)
+                    ?: it.groupValues.getOrNull(2)
+            }
+            val decodedName = encodedName?.let {
+                runCatching {
+                    URLDecoder.decode(it, StandardCharsets.UTF_8.name())
+                }.getOrNull()
+            }
+            val pathName = runCatching {
+                URI(url).path.substringAfterLast('/').takeIf(String::isNotBlank)
+            }.getOrNull()
+            var candidate = decodedName ?: plainName ?: pathName ?: "mbai-download"
+            candidate = candidate
+                .replace(Regex("""[\u0000-\u001f/\\:*?"<>|]"""), "_")
+                .trim()
+                .trim('.')
+                .ifBlank { "mbai-download" }
+            if (!candidate.substringAfterLast('.', "").contains(Regex("""[A-Za-z0-9]{1,8}"""))) {
+                val extension = when (mimeType?.substringBefore(';')?.trim()?.lowercase(Locale.ROOT)) {
+                    "image/png" -> "png"
+                    "image/jpeg" -> "jpg"
+                    "image/webp" -> "webp"
+                    "application/zip" -> "zip"
+                    "application/json" -> "json"
+                    "application/pdf" -> "pdf"
+                    else -> ""
+                }
+                if (extension.isNotEmpty()) candidate += ".$extension"
+            }
+            return candidate.take(120)
         }
 
         internal fun hasSessionCookie(cookies: String?): Boolean =
@@ -467,4 +652,11 @@ class MainActivity : ComponentActivity() {
                         cookie.substringAfter('=', "").isNotBlank()
                 }
     }
+
+    private data class DownloadSpec(
+        val url: String,
+        val userAgent: String,
+        val contentDisposition: String,
+        val mimeType: String,
+    )
 }
