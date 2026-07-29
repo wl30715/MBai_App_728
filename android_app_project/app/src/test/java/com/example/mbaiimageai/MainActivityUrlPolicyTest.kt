@@ -112,4 +112,16 @@ class MainActivityUrlPolicyTest {
             ),
         )
     }
+
+    @Test
+    fun downloadsAcceptHttpsAndInlineImagesButRejectUnsafeSchemes() {
+        assertTrue(MainActivity.isSafeDownloadUrl("https://cdn.example/result.png"))
+        assertTrue(MainActivity.isSafeDownloadUrl("data:image/png;base64,iVBORw0KGgo="))
+        assertTrue(MainActivity.isInlineImageDataUrl("data:image/webp;base64,UklGRg=="))
+
+        assertFalse(MainActivity.isSafeDownloadUrl("data:text/html;base64,PHNjcmlwdD4="))
+        assertFalse(MainActivity.isSafeDownloadUrl("file:///sdcard/private.png"))
+        assertFalse(MainActivity.isSafeDownloadUrl("javascript:alert(1)"))
+        assertFalse(MainActivity.isInlineImageDataUrl("data:image/png,not-base64"))
+    }
 }

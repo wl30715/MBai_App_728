@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DownloadManager
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -16,6 +17,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
+import android.util.Base64
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -39,6 +42,8 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URI
@@ -395,7 +400,7 @@ class MainActivity : ComponentActivity() {
             }
 
             setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
-                if (!isInternalWebUrl(url)) {
+                if (!isSafeDownloadUrl(url)) {
                     openExternalUrl(url)
                     return@setDownloadListener
                 }
@@ -476,6 +481,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun enqueueDownload(download: DownloadSpec) {
+        if (isInlineImageDataUrl(download.url)) {
+            saveInlineImage(download)
+            return
+        }
         try {
             val filename = suggestDownloadFileName(
                 download.url,
@@ -506,6 +515,76 @@ class MainActivity : ComponentActivity() {
         } catch (_: Exception) {
             showToast("下载启动失败，请稍后重试")
         }
+    }
+
+    private fun saveInlineImage(download: DownloadSpec) {
+        scope.launch {
+            val result = runCatching {
+                val separator = download.url.indexOf(',')
+                require(separator > 5) { "Invalid image data URL" }
+                val metadata = download.url.substring(5, separator)
+                require(
+                    metadata.split(';').any { it.equals("base64", ignoreCase = true) }
+                ) { "Image data URL is not base64 encoded" }
+                val mimeType = metadata.substringBefore(';')
+                    .trim()
+                    .ifBlank { download.mimeType.substringBefore(';').trim() }
+                require(mimeType.startsWith("image/", ignoreCase = true)) {
+                    "Unsupported inline file type"
+                }
+                val bytes = Base64.decode(download.url.substring(separator + 1), Base64.DEFAULT)
+                require(bytes.isNotEmpty()) { "Empty inline image" }
+                val filename = suggestDownloadFileName(
+                    "",
+                    download.contentDisposition,
+                    mimeType,
+                )
+                saveBytesToDownloads(filename, mimeType, bytes)
+                filename
+            }
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { showToast("已保存至下载目录：$it") },
+                    onFailure = { showToast("图片保存失败，请稍后重试") },
+                )
+            }
+        }
+    }
+
+    private fun saveBytesToDownloads(filename: String, mimeType: String, bytes: ByteArray) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, filename)
+                put(MediaStore.Downloads.MIME_TYPE, mimeType)
+                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+            val uri = checkNotNull(
+                contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+            ) { "Unable to create download" }
+            try {
+                checkNotNull(contentResolver.openOutputStream(uri)).use { output ->
+                    output.write(bytes)
+                }
+                values.clear()
+                values.put(MediaStore.Downloads.IS_PENDING, 0)
+                contentResolver.update(uri, values, null, null)
+            } catch (error: Exception) {
+                contentResolver.delete(uri, null, null)
+                throw error
+            }
+            return
+        }
+
+        val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        check(directory.exists() || directory.mkdirs()) { "Unable to create download directory" }
+        var destination = File(directory, filename)
+        if (destination.exists()) {
+            val stem = destination.nameWithoutExtension
+            val extension = destination.extension.takeIf(String::isNotBlank)?.let { ".$it" }.orEmpty()
+            destination = File(directory, "${stem}-${System.currentTimeMillis()}$extension")
+        }
+        FileOutputStream(destination).use { output -> output.write(bytes) }
     }
 
     private fun showToast(message: String) {
@@ -563,6 +642,21 @@ class MainActivity : ComponentActivity() {
 
         internal fun isInternalWebUrl(url: String): Boolean =
             isInternalWebUrlForOrigin(url, APP_ORIGIN)
+
+        internal fun isInlineImageDataUrl(url: String): Boolean {
+            val header = url.substringBefore(',', missingDelimiterValue = "")
+            return header.startsWith("data:image/", ignoreCase = true) &&
+                header.split(';').any { it.equals("base64", ignoreCase = true) }
+        }
+
+        internal fun isSafeDownloadUrl(url: String): Boolean {
+            if (isInlineImageDataUrl(url) || isInternalWebUrl(url)) return true
+            return try {
+                URI(url).scheme.equals("https", ignoreCase = true)
+            } catch (_: Exception) {
+                false
+            }
+        }
 
         internal fun isInternalWebUrlForOrigin(url: String, origin: String): Boolean = try {
             val uri = URI(url)
