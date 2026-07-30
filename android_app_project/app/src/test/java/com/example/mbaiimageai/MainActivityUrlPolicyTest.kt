@@ -53,6 +53,15 @@ class MainActivityUrlPolicyTest {
     }
 
     @Test
+    fun originalDownloadPolicyAllowsExternalHttpsButRejectsExternalHttp() {
+        assertTrue(MainActivity.isAllowedDownloadUrl("https://cdn.example/image.png"))
+        assertTrue(MainActivity.isAllowedDownloadUrl("https://mbai.wang/api/tasks/task-1/outputs/1/download"))
+        assertFalse(MainActivity.isAllowedDownloadUrl("http://cdn.example/image.png"))
+        assertFalse(MainActivity.isAllowedDownloadUrl("file:///sdcard/private.png"))
+        assertFalse(MainActivity.isAllowedDownloadUrl("javascript:alert(1)"))
+    }
+
+    @Test
     fun onlyPackagedFrontendFilesAreIntercepted() {
         assertTrue(MainActivity.isBundledAssetPath("/static/styles.css"))
         assertTrue(MainActivity.isBundledAssetPath("/static/brand/logo.png"))
@@ -111,17 +120,5 @@ class MainActivityUrlPolicyTest {
                 "application/zip",
             ),
         )
-    }
-
-    @Test
-    fun downloadsAcceptHttpsAndInlineImagesButRejectUnsafeSchemes() {
-        assertTrue(MainActivity.isSafeDownloadUrl("https://cdn.example/result.png"))
-        assertTrue(MainActivity.isSafeDownloadUrl("data:image/png;base64,iVBORw0KGgo="))
-        assertTrue(MainActivity.isInlineImageDataUrl("data:image/webp;base64,UklGRg=="))
-
-        assertFalse(MainActivity.isSafeDownloadUrl("data:text/html;base64,PHNjcmlwdD4="))
-        assertFalse(MainActivity.isSafeDownloadUrl("file:///sdcard/private.png"))
-        assertFalse(MainActivity.isSafeDownloadUrl("javascript:alert(1)"))
-        assertFalse(MainActivity.isInlineImageDataUrl("data:image/png,not-base64"))
     }
 }

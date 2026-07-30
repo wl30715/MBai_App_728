@@ -475,11 +475,11 @@
                   <div id="promptTemplateRecentDock" class="prompt-template-recent-dock hidden" aria-label="最近使用模板" data-i18n-attr="aria-label:prompt.recentTemplates"></div>
                 </div>
                 <div class="prompt-template-entry">
-                  <button id="promptTemplateButton" class="ghost-button text-sm icon-text-button resource-manage-button prompt-template-button" type="button" aria-controls="promptTemplateDrawer" aria-expanded="false" title="模版库" data-i18n-attr="title:prompt.manageTemplates">
+                  <button id="promptTemplateButton" class="ghost-button text-sm icon-text-button resource-manage-button prompt-template-button" type="button" aria-controls="promptTemplateDrawer" aria-expanded="false" title="管理模板库" data-i18n-attr="title:prompt.manageTemplates">
                     <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span data-i18n="prompt.manageTemplates">模版库</span>
+                    <span data-i18n="prompt.manageTemplates">管理模板库</span>
                   </button>
                 </div>
               </div>
@@ -833,16 +833,18 @@
                 <div class="preview-heading-actions">
                   <div class="preview-selection-actions hidden" id="previewSelectionActions" aria-live="polite">
                     <span id="previewSelectionCount" class="preview-selection-count" data-i18n="preview.selectedZero">已选 0</span>
-                    <button id="deleteUnselectedOutputsButton" class="ghost-button text-sm danger-action hidden" type="button" aria-label="删除未精选" title="删除未精选" data-i18n-attr="aria-label:preview.deleteUnselected;title:preview.deleteUnselected">
+                      <button id="deleteUnselectedOutputsButton" class="ghost-button text-sm danger-action hidden" type="button" aria-label="删除已选图片" title="删除已选图片" data-i18n-attr="aria-label:preview.deleteUnselected;title:preview.deleteUnselected">
                       <svg class="preview-delete-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                         <path d="M5 5h10" />
                         <path d="M8 5l1-2h2l1 2" />
                         <path d="M6 5l1 12h6l1-12" />
                         <path d="M8.5 8v6M11.5 8v6" />
                       </svg>
-                      <span data-i18n="preview.deleteUnselected">删除未精选</span>
+                      <span data-i18n="preview.deleteUnselected">删除已选图片</span>
                     </button>
+                    <a id="downloadSelectedButton" class="ghost-button text-sm hidden" href="#" download data-i18n="preview.downloadSelected">下载已选图片</a>
                   </div>
+                  <a id="downloadAllButton" class="ghost-button text-sm hidden" href="#" download data-i18n="preview.downloadAll">打包下载</a>
                   <button id="refreshButton" class="ghost-button icon-button" type="button" data-i18n="action.refresh">↻ 刷新</button>
                 </div>
               </div>
@@ -1427,8 +1429,8 @@
           const response = await originalFetch(...args);
           if (response.status === 401 && !kicked) {
             kicked = true;
-            window.alert("登录已过期，请重新登录");
-            window.location.href = "/login?expired=1";
+            window.alert("账号已在其他设备登录，请重新登录");
+            window.location.href = "/login?kicked=1";
           }
           return response;
         };

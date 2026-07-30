@@ -227,13 +227,14 @@
                   <span id="userPasswordStatus" class="user-password-status" role="status"></span>
                 </div>
               </form>
-              <div class="user-logout-card">
+              <div id="appCacheCard" class="user-cache-card hidden" hidden>
                 <div class="user-logout-copy">
-                  <strong>APP更新</strong>
-                  <small>检查并安装墨白的最新正式版本</small>
+                  <strong>清理 App 缓存</strong>
+                  <small>仅清理页面与缩略图缓存，不会退出账号，也不会删除已下载图片或云端记录</small>
                 </div>
-                <button id="userCheckUpdateButton" class="ghost-button text-sm" type="button">检查更新</button>
-                <span id="userCheckUpdateStatus" class="user-password-status" role="status"></span>
+                <span id="appCacheSize" class="user-cache-size">正在计算…</span>
+                <button id="appCacheClearButton" class="ghost-button text-sm" type="button">立即清理</button>
+                <span id="appCacheStatus" class="user-password-status" role="status"></span>
               </div>
               <div class="user-logout-card">
                 <div class="user-logout-copy">
@@ -281,8 +282,8 @@
         const response = await originalFetch(...args);
         if (response.status === 401 && !kicked) {
           kicked = true;
-          window.alert("登录已过期，请重新登录");
-          window.location.href = "/login?expired=1";
+          window.alert("账号已在其他设备登录，请重新登录");
+          window.location.href = "/login?kicked=1";
         }
         return response;
       };
@@ -515,16 +516,6 @@
         void loadDeductionRecords();
       });
       const logoutButton = document.getElementById("userLogoutButton");
-      document.getElementById("userCheckUpdateButton")?.addEventListener("click", () => {
-        const status = document.getElementById("userCheckUpdateStatus");
-        if (window.MoBaiAndroid?.checkForUpdates) {
-          if (status) status.textContent = "正在检查更新…";
-          window.MoBaiAndroid.checkForUpdates();
-          window.setTimeout(() => { if (status) status.textContent = ""; }, 3000);
-          return;
-        }
-        if (status) status.textContent = "请在安卓APP内使用检查更新";
-      });
       logoutButton?.addEventListener("click", async () => {
         const status = document.getElementById("userLogoutStatus");
         logoutButton.disabled = true;

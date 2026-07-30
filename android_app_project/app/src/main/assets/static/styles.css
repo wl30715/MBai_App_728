@@ -12944,6 +12944,25 @@ button:disabled {
   background: color-mix(in srgb, var(--danger-soft) 42%, var(--surface));
 }
 
+.user-cache-card {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.user-cache-size {
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .user-logout-copy {
   display: grid;
   gap: 3px;
@@ -13095,13 +13114,42 @@ button:disabled {
   align-items: center;
   min-height: 26px;
   padding: 5px 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--panel-border));
+  border: 1px solid color-mix(in srgb, #6f9d69 28%, var(--panel-border));
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  color: var(--text-secondary);
+  background: color-mix(in srgb, #dcebd4 72%, var(--surface));
+  color: color-mix(in srgb, #39583a 82%, var(--text));
   font-size: 12px;
   font-weight: 700;
   line-height: 1.25;
+}
+
+.history-output-expired-overlay,
+.preview-expired-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: rgb(18 22 27 / 68%);
+  color: #fff;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+.preview-expired-overlay[hidden] {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .user-cache-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .user-cache-card .user-password-status {
+    grid-column: 1 / -1;
+  }
 }
 
 .history-brand {
