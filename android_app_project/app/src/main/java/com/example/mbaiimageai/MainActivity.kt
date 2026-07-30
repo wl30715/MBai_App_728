@@ -303,6 +303,37 @@ class MainActivity : ComponentActivity() {
                         userAgent = webView.settings.userAgentString.orEmpty(),
                         contentDisposition = """attachment; filename="$safeFilename"""",
                         mimeType = "image/*",
+                        directoryType = Environment.DIRECTORY_PICTURES,
+                        subdirectory = GENERATED_IMAGE_DIRECTORY,
+                    )
+                )
+            }
+        }
+
+        @JavascriptInterface
+        fun saveGeneratedImage(url: String, filename: String, taskId: String) {
+            mainHandler.post {
+                if (!isSafeDownloadUrl(url) || isInternalWebUrl(url) || isInlineImageDataUrl(url)) {
+                    return@post
+                }
+                val safeFilename = suggestDownloadFileName(
+                    "",
+                    """attachment; filename="$filename"""",
+                    "image/png",
+                )
+                val trackingKey = generatedImageTrackingKey(taskId, safeFilename)
+                val savedKeys = prefs.getStringSet(GENERATED_IMAGE_KEYS, emptySet()).orEmpty()
+                if (trackingKey in savedKeys) return@post
+                requestDownload(
+                    DownloadSpec(
+                        url = url,
+                        userAgent = webView.settings.userAgentString.orEmpty(),
+                        contentDisposition = """attachment; filename="$safeFilename"""",
+                        mimeType = "image/*",
+                        directoryType = Environment.DIRECTORY_PICTURES,
+                        subdirectory = GENERATED_IMAGE_DIRECTORY,
+                        trackingKey = trackingKey,
+                        silent = true,
                     )
                 )
             }
@@ -904,7 +935,10 @@ class MainActivity : ComponentActivity() {
                 )
                 .setAllowedOverMetered(true)
                 .setAllowedOverRoaming(true)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+                .setDestinationInExternalPublicDir(
+                    download.directoryType,
+                    if (download.subdirectory.isBlank()) filename else "${download.subdirectory}/$filename",
+                )
             if (download.mimeType.isNotBlank()) {
                 request.setMimeType(download.mimeType)
             }
@@ -916,11 +950,25 @@ class MainActivity : ComponentActivity() {
                 ?.let { request.addRequestHeader("Cookie", it) }
             val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             manager.enqueue(request)
-            showToast("已开始下载：$filename")
+            if (download.trackingKey.isNotBlank()) {
+                val savedKeys = prefs.getStringSet(GENERATED_IMAGE_KEYS, emptySet()).orEmpty().toMutableSet()
+                savedKeys.add(download.trackingKey)
+                prefs.edit().putStringSet(GENERATED_IMAGE_KEYS, savedKeys).apply()
+            }
+            if (!download.silent) {
+                showToast("已开始下载：$filename")
+            }
         } catch (_: Exception) {
-            showToast("下载启动失败，请稍后重试")
+            if (!download.silent) {
+                showToast("下载启动失败，请稍后重试")
+            }
         }
     }
+
+    private fun generatedImageTrackingKey(taskId: String, filename: String): String =
+        MessageDigest.getInstance("SHA-256")
+            .digest("${taskId.trim()}|${filename.trim()}".toByteArray(StandardCharsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
 
     private fun saveInlineImage(download: DownloadSpec) {
         scope.launch {
@@ -1032,6 +1080,8 @@ class MainActivity : ComponentActivity() {
         private const val UPDATE_DOWNLOAD_ID_KEY = "android_update_download_id"
         private const val UPDATE_FILE_PATH_KEY = "android_update_file_path"
         private const val UPDATE_SPEC_KEY = "android_update_spec"
+        private const val GENERATED_IMAGE_KEYS = "generated_image_download_keys"
+        private const val GENERATED_IMAGE_DIRECTORY = "墨白"
         private const val UPDATE_CHECK_INTERVAL_MS = 24L * 60L * 60L * 1000L
         private val EXTERNAL_SCHEMES = setOf("https", "mailto", "tel")
         private val BUNDLED_STATIC_FILES = setOf(
@@ -1163,6 +1213,10 @@ class MainActivity : ComponentActivity() {
         val userAgent: String,
         val contentDisposition: String,
         val mimeType: String,
+        val directoryType: String = Environment.DIRECTORY_DOWNLOADS,
+        val subdirectory: String = "",
+        val trackingKey: String = "",
+        val silent: Boolean = false,
     )
 
     private data class AppUpdateSpec(

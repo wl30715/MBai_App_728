@@ -4,8 +4,8 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
-val productVersion = "2.1.3"
-val productVersionCode = 213
+val productVersion = "2.1.4"
+val productVersionCode = 214
 val releaseKeystorePath = System.getenv("MBAI_KEYSTORE_PATH")
 val releaseKeystorePassword = System.getenv("MBAI_KEYSTORE_PASSWORD")
 val releaseKeyAlias = System.getenv("MBAI_KEY_ALIAS")
