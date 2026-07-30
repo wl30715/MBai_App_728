@@ -6,6 +6,16 @@ plugins {
 
 val productVersion = "2.2.0"
 val productVersionCode = 220
+val releaseKeystorePath = System.getenv("MBAI_KEYSTORE_PATH")
+val releaseKeystorePassword = System.getenv("MBAI_KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("MBAI_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("MBAI_KEY_PASSWORD")
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
 
 android {
     namespace = "com.example.mbaiimageai"
@@ -26,20 +36,35 @@ android {
             versionNameSuffix = "-local"
             buildConfigField("String", "APP_ORIGIN", "\"http://127.0.0.1:8787\"")
             manifestPlaceholders["usesCleartextTraffic"] = "true"
-            resValue("string", "app_name", "墨白AI 测试版")
+            resValue("string", "app_name", "墨白 测试版")
         }
         create("production") {
             dimension = "server"
             buildConfigField("String", "APP_ORIGIN", "\"https://mbai.wang\"")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
-            resValue("string", "app_name", "墨白AI")
+            resValue("string", "app_name", "墨白")
         }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+                enableV4Signing = true
+            }
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     compileOptions {
@@ -58,6 +83,18 @@ android {
       resources {
         excludes += "/META-INF/{AL2.0,LGPL2.1}"
       }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val buildsReleaseApk = allTasks.any {
+        it.name.equals("assembleProductionRelease", ignoreCase = true)
+    }
+    if (buildsReleaseApk && !hasReleaseSigning) {
+        throw GradleException(
+            "ProductionRelease requires MBAI_KEYSTORE_PATH, MBAI_KEYSTORE_PASSWORD, " +
+                "MBAI_KEY_ALIAS and MBAI_KEY_PASSWORD."
+        )
     }
 }
 
