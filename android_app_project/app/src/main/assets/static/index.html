@@ -69,35 +69,10 @@
             return null;
           }
         }
-        async function readStoredLocalePreference() {
-          try {
-            const response = await fetch("/api/settings");
-            if (response.ok) {
-              const payload = await response.json();
-              const locale = normalizeLocale(payload?.settings?.locale);
-              if (locale) return locale;
-            }
-          } catch {
-            return readLocalLocalePreference();
-          }
-          return readLocalLocalePreference();
-        }
         function applyLocale(locale) {
           currentLocale = locale || defaultLocale;
           document.documentElement.lang = currentLocale;
           document.documentElement.dataset.locale = currentLocale;
-        }
-        function persistLocalePreference() {
-          try {
-            localStorage.setItem(LOCALE_STORAGE_KEY, currentLocale);
-          } catch {
-            // Browser storage may be unavailable in restricted contexts.
-          }
-          void fetch("/api/settings", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ locale: currentLocale })
-          }).catch(() => {});
         }
         let locale = readLocalLocalePreference() || detectPreferredLocale();
         try {
@@ -107,13 +82,9 @@
           locale = detectPreferredLocale();
         }
         applyLocale(locale);
-        void readStoredLocalePreference().then((storedLocale) => {
-          applyLocale(storedLocale || locale);
-          persistLocalePreference();
-        });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-597" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-599" />
   </head>
   <body>
     <div class="layout-container">
@@ -1463,7 +1434,7 @@
         } catch (_) {}
       })();
     </script>
-  <script src="/static/app.js?v=runtime-598"></script>
+  <script src="/static/app.js?v=runtime-599"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

@@ -1,26 +1,22 @@
 # 墨白 AI Android APP
 
-这是可独立上传到 GitHub 的 Android 前端项目，不包含后端和用户数据。
+这是可以单独上传到 GitHub 的手机端完整项目，不需要上传后端主项目。
 
-## GitHub 打包
+## 上传
 
-仓库需要配置以下 Actions Secrets：
+1. 在 GitHub 新建一个空仓库。
+2. 将 `MBai_App_Package` 文件夹里面的全部内容上传到仓库根目录。
+3. 必须包含隐藏目录 `.github`，否则不会自动打包。
+4. 上传完成后打开仓库的 `Actions` 页面。
+5. 选择 `Build Android APK`，等待绿色成功标记。
+6. 在本次运行页面底部的 `Artifacts` 下载 `MBai-debug-apk`。
 
-- `MBAI_KEYSTORE_BASE64`
-- `MBAI_KEYSTORE_PASSWORD`
-- `MBAI_KEY_ALIAS`
-- `MBAI_KEY_PASSWORD`
+Android 工程位于 `android_app_project`，GitHub 会自动使用 JDK 17 和 Android SDK 36
+执行测试并生成：
 
-Push 或手动运行 `Build Android APK` 后，下载产物：
+`android_app_project/app/build/outputs/apk/production/debug/app-production-debug.apk`
 
-`MBai-production-release-apk`
+APP 版本：`2.0.5 (205)`。
 
-正式 APK 路径：
-
-`android_app_project/app/build/outputs/apk/production/release/app-production-release.apk`
-
-当前版本：`2.1.0 (210)`。
-
-Pull Request 不使用签名 Secrets，只执行测试和 Debug 构建。
-
-不要上传 `.gradle`、`build`、`local.properties`、Release 密钥库或 APK 文件。固定 Release 密钥必须离线备份；丢失后将无法继续覆盖升级已安装的正式 APP。
+请不要上传 `.gradle`、`build`、`local.properties`、签名文件或旧 APK；这些内容已经通过
+`.gitignore` 排除。

@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="/static/brand/favicon-v3.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <script src="/static/pwa.js?v=pwa-2" defer></script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-584" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-599" />
   <style>
     body.is-normal-user details[data-history-filter-section="mode"],
     body.is-normal-user details[data-history-filter-section="prompt_mode"],
@@ -91,6 +91,7 @@
           <p id="historyResultSummary" data-i18n="history.browseNewest">按时间倒序浏览</p>
         </div>
         <div class="history-toolbar-actions">
+          <a id="historyMobileDownloadLink" class="ghost-button text-sm history-mobile-download-link" href="#" target="_blank" rel="noopener noreferrer" hidden data-i18n="history.mobileDownload">移动端下载</a>
           <div id="historyViewToggle" class="history-view-toggle" aria-label="视图" data-i18n-attr="aria-label:history.view">
             <button class="history-view-button active" type="button" data-history-view="grid" aria-pressed="true" data-i18n="history.grid">网格</button>
             <button class="history-view-button" type="button" data-history-view="list" aria-pressed="false" data-i18n="history.list">列表</button>
@@ -395,6 +396,12 @@
             purchaseLink.hidden = !purchaseUrl;
             purchaseLink.href = purchaseUrl || "#";
           }
+          const mobileDownloadLink = document.getElementById("historyMobileDownloadLink");
+          const mobileDownloadUrl = payload.settings?.mobile_download_url || "";
+          if (mobileDownloadLink) {
+            mobileDownloadLink.hidden = !mobileDownloadUrl;
+            mobileDownloadLink.href = mobileDownloadUrl || "#";
+          }
           if (!user.is_admin) document.body.classList.add("is-normal-user");
           setText("userCenterUsername", user.username || "-");
           setText("userCenterRole", user.is_admin ? "管理员" : "普通用户");
@@ -532,6 +539,6 @@
       loadAccount();
     })();
   </script>
-  <script src="/static/history.js?v=history-73"></script>
+  <script src="/static/history.js?v=history-74"></script>
 </body>
 </html>

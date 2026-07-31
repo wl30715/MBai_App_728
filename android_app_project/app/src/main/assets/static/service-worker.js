@@ -1,12 +1,12 @@
-const CACHE_NAME = "mbai-gpt-shell-v70";
+const CACHE_NAME = "mbai-gpt-shell-v71";
 const APP_SHELL_URLS = [
   "/",
   "/history",
   "/manifest.webmanifest",
-  "/static/styles.css",
-  "/static/app.js",
-  "/static/history.js",
-  "/static/pwa.js",
+  "/static/styles.css?v=runtime-599",
+  "/static/app.js?v=runtime-599",
+  "/static/history.js?v=history-74",
+  "/static/pwa.js?v=pwa-2",
   "/static/brand/favicon-v3.png",
   "/static/brand/mbai-logo-v3.png",
   "/static/brand/pwa-icon-192.png",
